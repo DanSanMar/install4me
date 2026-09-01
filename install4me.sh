@@ -25,6 +25,7 @@ LOG_INFO="INFO"
 LOG_WARN="WARN"
 LOG_ERR="ERROR"
 
+DATE=$(date +"%d/%m/%Y")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 registrar_log() {
@@ -93,22 +94,18 @@ case "$OS_ID" in
         ;;
 esac
 
-# --- LOGO PROPIO DE INSTALL4ME ---
+# --- LOGO PROPIO DE INSTALL4ME (VERSIÓN CLEAN SIN BORDES) ---
 mostrar_logo() {
-    echo -e "${CIAN}  ██╗███╗   ██╗████████╗██████╗ ██████╗  █████╗  ██╗  ██╗███╗   ███╗███████╗${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██║████╗  ██║╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗ ██║  ██║████╗ ████║██╔════╝${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██║██╔██╗ ██║   ██║   ██████╔╝██████╔╝███████║ ███████║██╔████╔██║█████╗  ${RESET}"
-    echo -e "${AZUL}  ██║██║╚██╗██║   ██║   ██╔══██╗██╔══██╗██╔══██║ ╚════██║██║╚██╔╝██║██╔══╝  ${RESET}"
-    echo -e "${AZUL}  ██║██║ ╚████║   ██║   ██████╔╝██║  ██║██║  ██║      ██║██║ ╚═╝ ██║███████╗${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝      ╚═╝╚═╝     ╚═╝╚══════╝${RESET}"
-    echo -e "${VERDE_BRILLANTE}  INSTALL4ME - INSTALADOR INTELIGENTE${RESET}"
-    echo -e "${AZUL_BRILLANTE}  v${V}${RESET}"
-    echo -e "${AZUL}  By: ${AUTOR}${RESET}"
-    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo -e "${AMARILLO}➤ Sistema detectado:${RESET} ${AZUL}${OS_ID:-"Desconocido"}${RESET}"
-    echo -e "${AMARILLO}➤ Gestor de paquetes:${RESET} ${AZUL}${Package:-"Desconocido"}${RESET}"
-    echo -e "${AMARILLO}➤ Versión:${RESET} ${AZUL}${VERSION:-"Desconocido"}${RESET}"
-    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██╗███╗   ██╗███████╗████████╗█████╗  ██╗     ██╗     ███╗   ███╗███████╗${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██║████╗  ██║██╔════╝╚══██╔══╝██╔══██╗██║     ██║     ████╗ ████║██╔════╝${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██║██╔██╗ ██║███████╗   ██║   ███████║██║     ██║     ██╔████╔██║█████╗  ${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██║██║╚██╗██║╚════██║   ██║   ██╔══██║██║     ██║     ██║╚██╔╝██║██╔══╝  ${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██║██║ ╚████║███████║   ██║   ██║  ██║███████╗███████╗██║ ╚═╝ ██║███████╗${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝     ╚═╝╚══════╝${RESET}"
+    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "  ${VERDE_BRILLANTE}🚀 INSTALL4ME v${V}${RESET}  -  ${AMARILLO}Sistema:${RESET} ${AZUL}${OS_ID:-"Desconocido"}${RESET}  ${AMARILLO}Gestor:${RESET} ${AZUL}${Package:-"Desconocido"}${RESET}"
+    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo ""
 }
 
 # --- DEFINICIÓN DE PAQUETES POR CATEGORÍA ---
@@ -414,27 +411,78 @@ instalar_paquetes() {
     pintar "$VERDE_BRILLANTE" "\n✔ Proceso de instalación finalizado."
 }
 
-# --- MENÚ DE SELECCIÓN DE PROGRAMAS CON FZF ---
+# --- FUNCIONES DE ESTILO FZF DE STK2 ---
+fzf_estilo() {
+    local prompt_text="$1"
+    local header_text="$2"
+    fzf --ansi \
+        --height=15 \
+        --reverse \
+        --border=rounded \
+        --prompt="➤ $prompt_text: " \
+        --header="$header_text" \
+        --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff"
+}
+
+fzf_menu_principal() {
+    local host_name=$(hostname 2>/dev/null || cat /etc/hostname)
+    local kernel_ver=$(uname -r | cut -d- -f1)
+
+    fzf --ansi \
+        --height=15 \
+        --layout=reverse \
+        --border=rounded \
+        --prompt=" Seleccione Menú-❯ " \
+        --header="--- P A N E L  D E  I N S T A L A C I Ó N ---" \
+        --header-lines=1 \
+        --color="border:#5fafd7,header:#af87ff,prompt:#5fb2ff,pointer:#afff00" \
+        --preview-window="up:25%:border-bottom" \
+        --preview="echo -e '\033[1;36mINFORMACIÓN\033[0m | \033[1;33mFecha:\033[0m $DATE | \033[1;33mHost:\033[0m $host_name | \033[1;33mKernel:\033[0m $kernel_ver'"
+}
+
+fzf_seleccion_multiple() {
+    local prompt_text="$1"
+    local header_text="$2"
+    fzf --ansi \
+        --multi \
+        --height=18 \
+        --reverse \
+        --border=rounded \
+        --prompt="➤ $prompt_text: " \
+        --header="$header_text (TAB: Seleccionar | Shift+TAB: Desmarcar)" \
+        --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff"
+}
+
+# --- MENÚ DE SELECCIÓN DE PROGRAMAS CON FZF (Estilo STK2 con TAB y Ayuda) ---
 seleccionar_programas() {
     local cat_key="$1"
+    local nombre_cat="$2"
     local raw_data="${CATEGORIAS[$cat_key]}"
     
     local opciones=""
     while IFS= read -r line; do
         [ -z "$line" ] && continue
-        opciones+="$line\n"
+        local nombre_mostrado="${line%%|*}"
+        local paquete="${line##*|}"
+        opciones+="$nombre_mostrado ($paquete)\n"
     done <<< "$raw_data"
 
     local seleccionados
-    seleccionados=$(echo -e "$opciones" | fzf --multi \
-        --height=20 \
-        --reverse \
-        --border=rounded \
-        --prompt="➤ Seleccione programas (TAB para múltiple): " \
-        --header="Seleccione los programas a instalar" \
-        --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff")
+    seleccionados=$(echo -e "$opciones" | fzf_seleccion_multiple "Seleccione programas" "PROGRAMAS - $nombre_cat")
     
-    echo "$seleccionados"
+    if [ -n "$seleccionados" ]; then
+        # Mapear las selecciones devueltas con el formato original de raw_data
+        local resultado=""
+        while IFS= read -r item; do
+            [ -z "$item" ] && continue
+            local pkg_name=$(echo "$item" | awk -F'(' '{print $2}' | tr -d ')')
+            local line_match=$(echo "$raw_data" | grep "|${pkg_name}$")
+            if [ -n "$line_match" ]; then
+                resultado+="$line_match\n"
+            fi
+        done <<< "$seleccionados"
+        echo -e "$resultado"
+    fi
 }
 
 # --- MENÚ DE INSTALACIÓN POR CATEGORÍA ---
@@ -443,76 +491,62 @@ menu_categoria() {
     local nombre_categoria="$2"
     local raw_data="${CATEGORIAS[$cat_key]}"
 
-    clear
-    mostrar_logo
+    while true; do
+        clear
+        mostrar_logo
 
-    echo -e "\n${CIAN}══════════════════════════════════════════════════${RESET}"
-    echo -e "${BLANCO} 📦 CATEGORÍA: ${VERDE_BRILLANTE}$nombre_categoria${RESET}"
-    echo -e "${CIAN}══════════════════════════════════════════════════${RESET}\n"
+        local opciones_cat="1. 🚀 Instalar TODOS los programas
+2. 🎯 Seleccionar individualmente (TAB = Selección múltiple)
+3. ↩ Volver"
 
-    local contador=1
-    while IFS= read -r line; do
-        [ -z "$line" ] && continue
-        local nombre_mostrado="${line%%|*}"
-        echo -e "  $contador) $nombre_mostrado"
-        ((contador++))
-    done <<< "$raw_data"
+        local accion
+        accion=$(echo -e "$opciones_cat" | fzf_estilo "Acción" "CATEGORÍA: $nombre_categoria")
+        
+        if [[ $? -ne 0 || "$accion" == *"Volver"* || -z "$accion" ]]; then 
+            break 
+        fi
 
-    echo -e "\n  ${AZUL}a)${RESET} Instalar TODOS los programas de esta categoría"
-    echo -e "  ${AZUL}s)${RESET} Seleccionar programas individualmente (con FZF)"
-    echo -e "  ${AZUL}v)${RESET} Volver al menú principal"
-
-    echo -ne "\n${AMARILLO}Seleccione una opción: ${RESET}"
-    read -r opcion
-
-    case "$opcion" in
-        a|A)
-            instalar_paquetes "$raw_data"
-            ;;
-        s|S)
-            local seleccionados
-            seleccionados=$(seleccionar_programas "$cat_key")
-            if [ -n "$seleccionados" ]; then
-                instalar_paquetes "$seleccionados"
-            fi
-            ;;
-        v|V)
-            return
-            ;;
-        *)
-            pintar "$ROJO" "Opción no válida."
-            sleep 1
-            ;;
-    esac
-
-    echo ""
-    read -p "Presione Enter para continuar..."
+        case ${accion:0:1} in
+            1)
+                instalar_paquetes "$raw_data"
+                echo ""
+                read -p "Presione Enter para continuar..."
+                ;;
+            2)
+                local seleccionados
+                seleccionados=$(seleccionar_programas "$cat_key" "$nombre_categoria")
+                if [ -n "$seleccionados" ]; then
+                    instalar_paquetes "$seleccionados"
+                    echo ""
+                    read -p "Presione Enter para continuar..."
+                fi
+                ;;
+        esac
+    done
 }
 
-# --- MENÚ PRINCIPAL ---
+# --- MENÚ PRINCIPAL CON ESTILO STK2 ---
 menu_principal() {
     while true; do
         clear
         mostrar_logo
         
-        echo -e "\n${CIAN}══════════════════════════════════════════════════${RESET}"
-        echo -e "${BLANCO} 📋 CATEGORÍAS DE PROGRAMAS DISPONIBLES${RESET}"
-        echo -e "${CIAN}══════════════════════════════════════════════════${RESET}\n"
-        
-        echo -e "  ${VERDE}1)${RESET} 🖥️  Escritorio - Navegadores, ofimática, multimedia"
-        echo -e "  ${VERDE}2)${RESET} 🔧  Desarrollo - Editores, compiladores, lenguajes"
-        echo -e "  ${VERDE}3)${RESET} 🛠️  Sistemas - Monitoreo, administración, diagnóstico"
-        echo -e "  ${VERDE}4)${RESET} 🔒  Seguridad - Herramientas de seguridad y auditoría"
-        echo -e "  ${VERDE}5)${RESET} 📦  Utilidades - Herramientas generales del sistema"
-        echo -e "  ${VERDE}6)${RESET} 🔍  Scan4Me - Herramientas de escaneo y reconocimiento"
-        echo -e "  ${VERDE}7)${RESET} 📋  STK Dependencias - Dependencias del STK Toolkit"
-        echo -e "  ${VERDE}8)${RESET} 🔄  Instalar TODAS las categorías (Instalación masiva)"
-        echo -e "  ${VERDE}0)${RESET} ❌  Salir"
-        
-        echo -ne "\n${AMARILLO}Seleccione una opción: ${RESET}"
-        read -r opcion
-        
-        case "$opcion" in
+        opciones="ICONO | CATEGORÍA       | DESCRIPCIÓN
+1. 🖥️ | ESCRITORIO      | Navegadores, ofimática, multimedia
+2. 🔧 | DESARROLLO      | Editores, compiladores, lenguajes
+3. 🛠️ | SISTEMAS        | Monitoreo, administración, diagnóstico
+4. 🔒 | SEGURIDAD       | Herramientas de seguridad y auditoría
+5. 📦 | UTILIDADES      | Herramientas generales del sistema
+6. 🔍 | SCAN4ME         | Herramientas de escaneo y reconocimiento
+7. 📋 | STK DEPENDENCIAS| Dependencias del STK Toolkit
+8. 🔄 | MODO MASIVO     | Instalar TODAS las categorías
+0. ❌ | SALIR           | Control+C"
+
+        seleccion=$(echo -e "$opciones" | fzf_menu_principal)
+
+        if [ $? -ne 0 ] || [ -z "$seleccion" ]; then salir; fi
+
+        case ${seleccion%%.*} in
             1) menu_categoria "escritorio" "Escritorio" ;;
             2) menu_categoria "desarrollo" "Desarrollo" ;;
             3) menu_categoria "sistemas" "Sistemas" ;;
@@ -521,6 +555,8 @@ menu_principal() {
             6) menu_categoria "scan4me" "Scan4Me" ;;
             7) menu_categoria "stk" "STK Dependencias" ;;
             8) 
+                clear
+                mostrar_logo
                 echo -e "\n${AZUL}🔄 Instalando TODAS las categorías...${RESET}"
                 echo -e "${ROJO}⚠️  Esto instalará todos los programas de todas las categorías.${RESET}"
                 echo -e "${AMARILLO}¿Está seguro? (s/N): ${RESET}"
@@ -534,14 +570,7 @@ menu_principal() {
                 fi
                 read -p "Presione Enter para continuar..."
                 ;;
-            0) 
-                pintar "$VERDE" "¡Gracias por usar Install4Me!"
-                exit 0
-                ;;
-            *)
-                pintar "$ROJO" "Opción no válida."
-                sleep 2
-                ;;
+            0) salir ;;
         esac
     done
 }
@@ -549,9 +578,9 @@ menu_principal() {
 # --- CAPTURA DE SEÑALES ---
 salir() {
     echo ""
-    pintar "$VERDE" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    pintar "$VERDE" "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     pintar "$AZUL" "Saliendo de Install4Me..."
-    pintar "$VERDE" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    pintar "$VERDE" "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     exit 0
 }
 trap salir SIGINT SIGTERM
