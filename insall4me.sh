@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.1.0"
+V="2.1.1"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -94,20 +94,21 @@ case "$OS_ID" in
 esac
 
 # --- LOGO PROPIO DE INSTALL4ME ---
-mostrar_logo() {
-    echo -e "${CIAN}  ██████  ████████ ██   ██${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██         ██    ██  ██ ${RESET}"
-    echo -e "${AZUL}  ██████     ██    █████  ${RESET}"
-    echo -e "${AZUL}       ██    ██    ██  ██ ${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██████     ██    ██   ██${RESET}"
+mmostrar_logo() {
+    echo -e "${CIAN}  ██╗███╗   ██╗████████╗██████╗ ██████╗  █████╗  ██╗  ██╗███╗   ███╗███████╗${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██║████╗  ██║╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗ ██║  ██║████╗ ████║██╔════╝${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ██║██╔██╗ ██║   ██║   ██████╔╝██████╔╝███████║ ███████║██╔████╔██║█████╗  ${RESET}"
+    echo -e "${AZUL}  ██║██║╚██╗██║   ██║   ██╔══██╗██╔══██╗██╔══██║ ╚════██║██║╚██╔╝██║██╔══╝  ${RESET}"
+    echo -e "${AZUL}  ██║██║ ╚████║   ██║   ██████╔╝██║  ██║██║  ██║      ██║██║ ╚═╝ ██║███████╗${RESET}"
+    echo -e "${AZUL_BRILLANTE}  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝      ╚═╝╚═╝     ╚═╝╚══════╝${RESET}"
     echo -e "${VERDE_BRILLANTE}  INSTALL4ME - INSTALADOR INTELIGENTE${RESET}"
     echo -e "${AZUL_BRILLANTE}  v${V}${RESET}"
     echo -e "${AZUL}  By: ${AUTOR}${RESET}"
-    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     echo -e "${AMARILLO}➤ Sistema detectado:${RESET} ${AZUL}${OS_ID:-"Desconocido"}${RESET}"
     echo -e "${AMARILLO}➤ Gestor de paquetes:${RESET} ${AZUL}${Package:-"Desconocido"}${RESET}"
     echo -e "${AMARILLO}➤ Versión:${RESET} ${AZUL}${VERSION:-"Desconocido"}${RESET}"
-    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 }
 
 # --- DEFINICIÓN DE PAQUETES POR CATEGORÍA ---
