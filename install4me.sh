@@ -94,7 +94,7 @@ case "$OS_ID" in
 esac
 
 # --- LOGO PROPIO DE INSTALL4ME ---
-mmostrar_logo() {
+mostrar_logo() {
     echo -e "${CIAN}  ██╗███╗   ██╗████████╗██████╗ ██████╗  █████╗  ██╗  ██╗███╗   ███╗███████╗${RESET}"
     echo -e "${AZUL_BRILLANTE}  ██║████╗  ██║╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗ ██║  ██║████╗ ████║██╔════╝${RESET}"
     echo -e "${AZUL_BRILLANTE}  ██║██╔██╗ ██║   ██║   ██████╔╝██████╔╝███████║ ███████║██╔████╔██║█████╗  ${RESET}"
