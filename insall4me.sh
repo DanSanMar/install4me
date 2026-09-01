@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.0.0"
-DESCRIPCION="Herramienta de instalación de programas por categorías"
+V="2.1.0"
+DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
 # --- CONFIGURACIÓN DE COLORES (Normalizados) ---
@@ -32,7 +32,7 @@ registrar_log() {
     local MENSAJE="${2}"
     local FECHA
     FECHA=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[$FECHA] [$NIVEL] [$USER] - $MENSAJE" >> "$LOG_FILE"
+    echo "[$FECHA] [$NIVEL] [${SUDO_USER:-$USER}] - $MENSAJE" >> "$LOG_FILE"
 }
 
 pintar() { 
@@ -63,7 +63,6 @@ if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS_ID="${ID:-unknown}"
     OS_LIKE="${ID_LIKE:-unknown}"
-    URL="${HOME_URL:-unknown}"
     
     if [ -n "$VERSION" ]; then
         VERSION="$VERSION"
@@ -112,83 +111,52 @@ mostrar_logo() {
 }
 
 # --- DEFINICIÓN DE PAQUETES POR CATEGORÍA ---
-# Cada categoría tiene un array con los nombres de los paquetes
-# El formato es: "nombre_mostrado|nombre_paquete"
-
 declare -A CATEGORIAS
 
-# Categoría: Escritorio
 CATEGORIAS["escritorio"]="
 firefox|firefox
 chromium|chromium
 google-chrome|google-chrome
 brave-browser|brave-browser
-vivaldi|vivaldi
 libreoffice|libreoffice
 gimp|gimp
 inkscape|inkscape
-obsidian|obsidian
-discord|discord
 telegram|telegram-desktop
 vlc|vlc
 mpv|mpv
-spotify|spotify
 "
 
-# Categoría: Desarrollo
 CATEGORIAS["desarrollo"]="
 Visual Studio Code|code
-Cursor AI|cursor
-Sublime Text|sublime-text
-Atom|atom
 Neovim|neovim
 Vim|vim
 Git|git
 GitHub CLI|gh
 Docker|docker
 Docker Compose|docker-compose
-Kubernetes|kubectl
 Node.js|nodejs
 npm|npm
 Python|python3
 pip|python3-pip
-Java|openjdk-17-jdk
-Maven|maven
-Gradle|gradle
+OpenJDK 17|openjdk-17-jdk
 Go|golang
 Rust|rustc
-Cargo|cargo
-PHP|php
-Composer|composer
 Ruby|ruby
-Gem|rubygems
 "
 
-# Categoría: Sistemas
 CATEGORIAS["sistemas"]="
 htop|htop
 btop|btop
 glances|glances
-nmon|nmon
 iotop|iotop
 ncdu|ncdu
 duf|duf
-bashtop|bashtop
-bpytop|bpytop
 neofetch|neofetch
-screenfetch|screenfetch
 inxi|inxi
 lshw|lshw
-lspci|pciutils
-lsusb|usbutils
-lsblk|util-linux
-fdisk|fdisk
-cfdisk|cfdisk
-parted|parted
 gparted|gparted
 "
 
-# Categoría: Seguridad
 CATEGORIAS["seguridad"]="
 Nmap|nmap
 Masscan|masscan
@@ -198,21 +166,13 @@ Aircrack-ng|aircrack-ng
 Hashcat|hashcat
 John the Ripper|john
 Hydra|hydra
-Medusa|medusa
 SQLmap|sqlmap
 Nikto|nikto
-OpenVAS|openvas
 Metasploit|metasploit-framework
-Burp Suite|burpsuite
-OWASP ZAP|zap
 ClamAV|clamav
-Rkhunter|rkhunter
-Chkrootkit|chkrootkit
-Lynis|lynis
 Fail2ban|fail2ban
 "
 
-# Categoría: Utilidades
 CATEGORIAS["utilidades"]="
 FZF|fzf
 Ripgrep|ripgrep
@@ -220,38 +180,30 @@ FD|fd-find
 Bat|bat
 Exa|exa
 Zoxide|zoxide
-Starship|starship
 Tmux|tmux
 Screen|screen
 Ranger|ranger
 Midnight Commander|mc
 Nano|nano
-Micro|micro
-Helix|helix
-Zellij|zellij
-Yazi|yazi
 "
 
-# Categoría: Scan4Me
 CATEGORIAS["scan4me"]="
 Masscan|masscan
 Nmap|nmap
 Gobuster|gobuster
-Dirb|dirb
+Feroxbuster|feroxbuster
 Nikto|nikto
 WPScan|wpscan
 Sublist3r|sublist3r
 Subfinder|subfinder
-Amass|amass
+Nuclei|nuclei
 WhatWeb|whatweb
-Wappalyzer|wappalyzer
 Dnsrecon|dnsrecon
 Enum4linux|enum4linux
 Smbclient|smbclient
 SNMPwalk|snmp
 "
 
-# Categoría: STK Dependencias
 CATEGORIAS["stk"]="
 FZF|fzf
 Xsltproc|xsltproc
@@ -268,102 +220,15 @@ Rsync|rsync
 Crontab|crontab
 "
 
-# --- FUNCIÓN PARA OBTENER NOMBRE DE PAQUETE SEGÚN DISTRO ---
+# --- OBTENER NOMBRE / METODO DE INSTALACIÓN ---
 get_package_name() {
     local tool="$1"
     
     case "$tool" in
-        "firefox") echo "firefox" ;;
-        "chromium") echo "chromium" ;;
-        "google-chrome") 
-            case "$Package" in
-                apt) echo "google-chrome-stable" ;;
-                dnf) echo "google-chrome" ;;
-                pacman) echo "google-chrome" ;;
-                *) echo "google-chrome" ;;
-            esac
-            ;;
-        "brave-browser")
-            case "$Package" in
-                apt) echo "brave-browser" ;;
-                dnf) echo "brave-browser" ;;
-                pacman) echo "brave" ;;
-                *) echo "brave-browser" ;;
-            esac
-            ;;
-        "code") 
-            case "$Package" in
-                apt) echo "code" ;;
-                dnf) echo "code" ;;
-                pacman) echo "visual-studio-code-bin" ;;
-                *) echo "code" ;;
-            esac
-            ;;
-        "cursor")
-            case "$Package" in
-                apt) echo "cursor" ;;
-                *) echo "cursor" ;;
-            esac
-            ;;
-        "neovim") echo "neovim" ;;
-        "vim") echo "vim" ;;
-        "git") echo "git" ;;
-        "gh") 
-            case "$Package" in
-                apt) echo "gh" ;;
-                dnf) echo "gh" ;;
-                pacman) echo "github-cli" ;;
-                *) echo "gh" ;;
-            esac
-            ;;
-        "docker")
-            case "$Package" in
-                apt) echo "docker.io" ;;
-                dnf) echo "docker" ;;
-                pacman) echo "docker" ;;
-                *) echo "docker" ;;
-            esac
-            ;;
-        "docker-compose") 
-            case "$Package" in
-                apt) echo "docker-compose" ;;
-                dnf) echo "docker-compose" ;;
-                pacman) echo "docker-compose" ;;
-                *) echo "docker-compose" ;;
-            esac
-            ;;
-        "nodejs") 
-            case "$Package" in
-                apt) echo "nodejs" ;;
-                dnf) echo "nodejs" ;;
-                pacman) echo "nodejs" ;;
-                *) echo "nodejs" ;;
-            esac
-            ;;
-        "npm") 
-            case "$Package" in
-                apt) echo "npm" ;;
-                dnf) echo "npm" ;;
-                pacman) echo "npm" ;;
-                *) echo "npm" ;;
-            esac
-            ;;
-        "python3") 
-            case "$Package" in
-                apt) echo "python3" ;;
-                dnf) echo "python3" ;;
-                pacman) echo "python" ;;
-                *) echo "python3" ;;
-            esac
-            ;;
-        "python3-pip")
-            case "$Package" in
-                apt) echo "python3-pip" ;;
-                dnf) echo "python3-pip" ;;
-                pacman) echo "python-pip" ;;
-                *) echo "python3-pip" ;;
-            esac
-            ;;
+        "code") [[ "$Package" == "pacman" ]] && echo "visual-studio-code-bin" || echo "code" ;;
+        "gh") [[ "$Package" == "pacman" ]] && echo "github-cli" || echo "gh" ;;
+        "docker") [[ "$Package" == "apt" ]] && echo "docker.io" || echo "docker" ;;
+        "python3-pip") [[ "$Package" == "pacman" ]] && echo "python-pip" || echo "python3-pip" ;;
         "openjdk-17-jdk")
             case "$Package" in
                 apt) echo "openjdk-17-jdk" ;;
@@ -372,242 +237,193 @@ get_package_name() {
                 *) echo "openjdk-17-jdk" ;;
             esac
             ;;
-        "golang") 
-            case "$Package" in
-                apt) echo "golang-go" ;;
-                dnf) echo "go" ;;
-                pacman) echo "go" ;;
-                *) echo "golang" ;;
-            esac
-            ;;
-        "rustc") 
-            case "$Package" in
-                apt) echo "rustc" ;;
-                dnf) echo "rust" ;;
-                pacman) echo "rust" ;;
-                *) echo "rustc" ;;
-            esac
-            ;;
-        "htop") echo "htop" ;;
-        "btop") 
-            case "$Package" in
-                apt) echo "btop" ;;
-                dnf) echo "btop" ;;
-                pacman) echo "btop" ;;
-                *) echo "btop" ;;
-            esac
-            ;;
-        "glances") 
-            case "$Package" in
-                apt) echo "glances" ;;
-                dnf) echo "glances" ;;
-                pacman) echo "glances" ;;
-                *) echo "glances" ;;
-            esac
-            ;;
-        "nmap") 
-            case "$Package" in
-                apt) echo "nmap" ;;
-                dnf) echo "nmap" ;;
-                pacman) echo "nmap" ;;
-                *) echo "nmap" ;;
-            esac
-            ;;
-        "masscan") 
-            case "$Package" in
-                apt) echo "masscan" ;;
-                dnf) echo "masscan" ;;
-                pacman) echo "masscan" ;;
-                *) echo "masscan" ;;
-            esac
-            ;;
-        "gobuster") 
-            case "$Package" in
-                apt) echo "gobuster" ;;
-                dnf) echo "gobuster" ;;
-                pacman) echo "gobuster" ;;
-                *) echo "gobuster" ;;
-            esac
-            ;;
-        "fzf") echo "fzf" ;;
-        "ripgrep") 
-            case "$Package" in
-                apt) echo "ripgrep" ;;
-                dnf) echo "ripgrep" ;;
-                pacman) echo "ripgrep" ;;
-                *) echo "ripgrep" ;;
-            esac
-            ;;
-        "fd-find")
-            case "$Package" in
-                apt) echo "fd-find" ;;
-                dnf) echo "fd-find" ;;
-                pacman) echo "fd" ;;
-                *) echo "fd-find" ;;
-            esac
-            ;;
-        "bat")
-            case "$Package" in
-                apt) echo "bat" ;;
-                dnf) echo "bat" ;;
-                pacman) echo "bat" ;;
-                *) echo "bat" ;;
-            esac
-            ;;
-        "exa") 
-            case "$Package" in
-                apt) echo "exa" ;;
-                dnf) echo "exa" ;;
-                pacman) echo "exa" ;;
-                *) echo "exa" ;;
-            esac
-            ;;
-        "tmux") 
-            case "$Package" in
-                apt) echo "tmux" ;;
-                dnf) echo "tmux" ;;
-                pacman) echo "tmux" ;;
-                *) echo "tmux" ;;
-            esac
-            ;;
-        "zoxide") 
-            case "$Package" in
-                apt) echo "zoxide" ;;
-                dnf) echo "zoxide" ;;
-                pacman) echo "zoxide" ;;
-                *) echo "zoxide" ;;
-            esac
-            ;;
-        "starship") 
-            case "$Package" in
-                apt) echo "starship" ;;
-                dnf) echo "starship" ;;
-                pacman) echo "starship" ;;
-                *) echo "starship" ;;
-            esac
-            ;;
-        "jq") echo "jq" ;;
-        "rsync") echo "rsync" ;;
-        "crontab")
-            case "$Package" in
-                apt) echo "cron" ;;
-                *) echo "cronie" ;;
-            esac
-            ;;
-        "host") 
+        "golang") [[ "$Package" == "apt" ]] && echo "golang-go" || echo "go" ;;
+        "rustc") [[ "$Package" == "apt" ]] && echo "rustc" || echo "rust" ;;
+        "fd-find") [[ "$Package" == "pacman" ]] && echo "fd" || echo "fd-find" ;;
+        "crontab") [[ "$Package" == "apt" || "$Package" == "zypper" ]] && echo "cron" || echo "cronie" ;;
+        "host")
             case "$Package" in
                 apt) echo "bind9-dnsutils" ;;
                 pacman) echo "bind" ;;
                 *) echo "bind-utils" ;;
             esac
             ;;
-        "tput")
-            if [[ "$Package" == "apt" ]]; then
-                echo "ncurses-bin"
-            else
-                echo "ncurses"
-            fi
-            ;;
-        "free")
-            if [[ "$Package" == "pacman" ]]; then
-                echo "procps-ng"
-            else
-                echo "procps"
-            fi
-            ;;
-        "hostname")
-            if [[ "$Package" == "pacman" ]]; then
-                echo "inetutils"
-            else
-                echo "hostname"
-            fi
-            ;;
-        "js") 
+        "tput") [[ "$Package" == "apt" ]] && echo "ncurses-bin" || echo "ncurses" ;;
+        "free") [[ "$Package" == "pacman" ]] && echo "procps-ng" || echo "procps" ;;
+        "hostname") [[ "$Package" == "pacman" ]] && echo "inetutils" || echo "hostname" ;;
+        "js")
             case "$Package" in
                 pacman) echo "js128" ;;
-                apt)    echo "nodejs" ;;
-                dnf)    echo "mozjs115" ;;
-                *)      echo "nodejs" ;;
+                apt|*) echo "nodejs" ;;
             esac
             ;;
-        *)
-            # Si no está en la lista, devolver el mismo nombre
-            echo "$tool"
-            ;;
+        "snmp") [[ "$Package" == "apt" ]] && echo "snmp" || echo "net-snmp" ;;
+        *) echo "$tool" ;;
     esac
 }
 
-# --- FUNCIÓN DE INSTALACIÓN ---
+# --- DESCARGA SEGURA DESDE GITHUB (Scan4me support) ---
+instalar_github_release() {
+    local repo=$1
+    local binary_name=$2
+    local asset_pattern=$3
+    local is_tgz=${4:-false}
+
+    echo -e "${AZUL}📥 Descargando $binary_name desde GitHub ($repo)...${RESET}"
+    local download_url
+    download_url=$(curl -s "https://api.github.com/repos/$repo/releases/latest" \
+        | grep "browser_download_url" \
+        | grep -iE "$asset_pattern" \
+        | head -n 1 \
+        | cut -d '"' -f 4)
+
+    if [[ -z "$download_url" ]]; then
+        echo -e "${ROJO}❌ Error al resolver release de GitHub para $binary_name.${RESET}"
+        return 1
+    fi
+
+    local tmp_file="/tmp/${binary_name}_tmp"
+    wget -qO "$tmp_file" "$download_url"
+
+    if [ "$is_tgz" = true ]; then
+        tar -xzf "$tmp_file" -C /usr/local/bin/ "$binary_name" 2>/dev/null || tar -xzf "$tmp_file" -C /usr/local/bin/
+    else
+        unzip -o -q "$tmp_file" -d /tmp/
+        mv /tmp/"$binary_name" /usr/local/bin/ 2>/dev/null || true
+    fi
+
+    chmod +x "/usr/local/bin/$binary_name"
+    rm -f "$tmp_file"
+    echo -e "${VERDE}✅ $binary_name instalado en /usr/local/bin/${RESET}"
+}
+
+# --- FUNCIÓN MEJORADA DE INSTALACIÓN HÍBRIDA ---
 instalar_paquetes() {
-    local -n lista="$1"
+    local lista_raw="$1"
     local paquetes_a_instalar=()
-    
-    # Convertir nombres mostrados a nombres de paquetes reales
+    local paquetes_especiales=()
+
+    # Separar paquetes estándar de herramientas especiales (Pip/Gem/Git)
     while IFS= read -r line; do
         [ -z "$line" ] && continue
-        local nombre_mostrado="${line%%|*}"
         local nombre_paquete="${line##*|}"
-        local pkg_real=$(get_package_name "$nombre_paquete")
-        paquetes_a_instalar+=("$pkg_real")
-    done <<< "$lista"
-    
-    if [ ${#paquetes_a_instalar[@]} -eq 0 ]; then
-        pintar "$AMARILLO" "No hay paquetes seleccionados para instalar."
-        return
-    fi
-    
-    echo -e "\n${AZUL}🔄 Actualizando repositorios ($Package)...${RESET}"
-    case "$Package" in
-        "apt") apt update -y ;;
-        "dnf") dnf makecache ;;
-        "pacman") pacman -Sy ;;
-        "zypper") zypper refresh ;;
-    esac
-    
-    echo -e "\n${AZUL}📦 Instalando paquetes...${RESET}"
-    for pkg in "${paquetes_a_instalar[@]}"; do
-        echo -e "${AZUL}   ➜ $pkg${RESET}"
-        case "$Package" in
-            "apt") apt install -y "$pkg" ;;
-            "dnf") dnf install -y "$pkg" ;;
-            "pacman") pacman -S --noconfirm "$pkg" ;;
-            "zypper") zypper install -y "$pkg" ;;
+
+        case "$nombre_paquete" in
+            wpscan|feroxbuster|subfinder|nuclei|gobuster|whatweb|sublist3r|enum4linux|dnsrecon)
+                paquetes_especiales+=("$nombre_paquete")
+                ;;
+            *)
+                local pkg_real
+                pkg_real=$(get_package_name "$nombre_paquete")
+                paquetes_a_instalar+=("$pkg_real")
+                ;;
         esac
+    done <<< "$lista_raw"
+
+    # 1. Actualización e Instalación vía Gestor Nativo
+    if [ ${#paquetes_a_instalar[@]} -gt 0 ]; then
+        echo -e "\n${AZUL}🔄 Actualizando repositorios ($Package)...${RESET}"
+        case "$Package" in
+            "apt") apt update -y -qq ;;
+            "dnf") dnf makecache ;;
+            "pacman") pacman -Sy --noconfirm ;;
+            "zypper") zypper refresh ;;
+        esac
+
+        echo -e "\n${AZUL}📦 Instalando paquetes nativos...${RESET}"
+        for pkg in "${paquetes_a_instalar[@]}"; do
+            echo -e "${AZUL}   ➜ Instalando $pkg...${RESET}"
+            local status=0
+            case "$Package" in
+                "apt") apt install -y "$pkg" || status=1 ;;
+                "dnf") dnf install -y "$pkg" || status=1 ;;
+                "pacman") pacman -S --noconfirm "$pkg" || status=1 ;;
+                "zypper") zypper install -y "$pkg" || status=1 ;;
+            esac
+
+            if [ $status -eq 0 ]; then
+                registrar_log "$LOG_INFO" "Paquete instalado nativo: $pkg"
+            else
+                registrar_log "$LOG_ERR" "Error al instalar nativo: $pkg"
+            fi
+        done
+    fi
+
+    # 2. Instalación de herramientas especiales (Scan4Me / Redes)
+    if [ ${#paquetes_especiales[@]} -gt 0 ]; then
+        echo -e "\n${MAGENTA}⚙️ Instalando herramientas especializadas/externas...${RESET}"
         
-        if [ $? -eq 0 ]; then
-            registrar_log "$LOG_INFO" "Paquete instalado: $pkg"
-        else
-            registrar_log "$LOG_ERR" "Error al instalar: $pkg"
-        fi
-    done
-    
-    # Habilitar servicios si se instaló crontab
-    if [[ " ${paquetes_a_instalar[*]} " =~ " cron " ]] || [[ " ${paquetes_a_instalar[*]} " =~ " cronie " ]]; then
-        case "$Package" in
-            "apt")    systemctl enable --now cron &>/dev/null ;;
-            "pacman") systemctl enable --now cronie &>/dev/null ;;
-            "dnf")    systemctl enable --now crond &>/dev/null ;;
-            "zypper") systemctl enable --now cron &>/dev/null ;;
-        esac
+        # Pre-requisitos
+        command -v git &>/dev/null || apt install -y git 2>/dev/null || dnf install -y git 2>/dev/null
+        command -v wget &>/dev/null || apt install -y wget 2>/dev/null
+
+        for tool in "${paquetes_especiales[@]}"; do
+            case "$tool" in
+                "wpscan")
+                    echo -e "${AZUL}💎 Instalando WPScan vía RubyGems...${RESET}"
+                    gem install wpscan --no-document && registrar_log "$LOG_INFO" "wpscan instalado por gem"
+                    ;;
+                "feroxbuster")
+                    instalar_github_release "epi052/feroxbuster" "feroxbuster" "x86_64-linux-feroxbuster.zip" false
+                    ;;
+                "nuclei")
+                    instalar_github_release "projectdiscovery/nuclei" "nuclei" "linux_amd64.zip" false
+                    ;;
+                "subfinder")
+                    instalar_github_release "projectdiscovery/subfinder" "subfinder" "linux_amd64.zip" false
+                    ;;
+                "gobuster")
+                    instalar_github_release "OJ/gobuster" "gobuster" "Linux_x86_64.tar.gz" true
+                    ;;
+                "whatweb")
+                    rm -rf /opt/whatweb
+                    git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/whatweb
+                    ln -sf /opt/whatweb/whatweb /usr/local/bin/whatweb
+                    chmod +x /usr/local/bin/whatweb
+                    ;;
+                "sublist3r")
+                    rm -rf /opt/sublist3r
+                    git clone --depth 1 https://github.com/aboul3la/Sublist3r.git /opt/sublist3r
+                    pip install --break-system-packages -r /opt/sublist3r/requirements.txt 2>/dev/null || pip install -r /opt/sublist3r/requirements.txt
+                    ln -sf /opt/sublist3r/sublist3r.py /usr/local/bin/sublist3r
+                    chmod +x /usr/local/bin/sublist3r
+                    ;;
+                "enum4linux")
+                    rm -rf /opt/enum4linux
+                    git clone --depth 1 https://github.com/CiscoCXSecurity/enum4linux.git /opt/enum4linux
+                    ln -sf /opt/enum4linux/enum4linux.pl /usr/local/bin/enum4linux
+                    chmod +x /usr/local/bin/enum4linux
+                    ;;
+                "dnsrecon")
+                    rm -rf /opt/dnsrecon
+                    git clone --depth 1 https://github.com/darkoperator/dnsrecon.git /opt/dnsrecon
+                    pip install --break-system-packages -r /opt/dnsrecon/requirements.txt 2>/dev/null || pip install -r /opt/dnsrecon/requirements.txt
+                    ln -sf /opt/dnsrecon/dnsrecon.py /usr/local/bin/dnsrecon
+                    chmod +x /usr/local/bin/dnsrecon
+                    ;;
+            esac
+        done
     fi
-    
-    pintar "$VERDE_BRILLANTE" "\n✔ Instalación completada."
+
+    # Habilitar servicios si se procesó cron
+    if [[ " ${paquetes_a_instalar[*]} " =~ "cron" ]] || [[ " ${paquetes_a_instalar[*]} " =~ "cronie" ]]; then
+        systemctl enable --now cron 2>/dev/null || systemctl enable --now cronie 2>/dev/null || true
+    fi
+
+    pintar "$VERDE_BRILLANTE" "\n✔ Proceso de instalación finalizado."
 }
 
 # --- MENÚ DE SELECCIÓN DE PROGRAMAS CON FZF ---
 seleccionar_programas() {
-    local categoria="$1"
-    local -n lista="$categoria"
+    local cat_key="$1"
+    local raw_data="${CATEGORIAS[$cat_key]}"
     
-    # Preparar opciones para fzf
     local opciones=""
     while IFS= read -r line; do
         [ -z "$line" ] && continue
-        local nombre_mostrado="${line%%|*}"
-        local nombre_paquete="${line##*|}"
-        opciones+="$nombre_mostrado|$nombre_paquete\n"
-    done <<< "$lista"
-    
+        opciones+="$line\n"
+    done <<< "$raw_data"
+
     local seleccionados
     seleccionados=$(echo -e "$opciones" | fzf --multi \
         --height=20 \
@@ -617,79 +433,46 @@ seleccionar_programas() {
         --header="Seleccione los programas a instalar" \
         --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff")
     
-    if [ -z "$seleccionados" ]; then
-        return
-    fi
-    
-    # Construir lista de paquetes seleccionados
-    local paquetes_seleccionados=""
-    while IFS= read -r sel; do
-        [ -z "$sel" ] && continue
-        local pkg="${sel##*|}"
-        paquetes_seleccionados+="$pkg\n"
-    done <<< "$seleccionados"
-    
-    echo -e "$paquetes_seleccionados"
+    echo "$seleccionados"
 }
 
 # --- MENÚ DE INSTALACIÓN POR CATEGORÍA ---
 menu_categoria() {
-    local categoria="$1"
+    local cat_key="$1"
     local nombre_categoria="$2"
-    
+    local raw_data="${CATEGORIAS[$cat_key]}"
+
     clear
     mostrar_logo
-    
+
     echo -e "\n${CIAN}══════════════════════════════════════════════════${RESET}"
     echo -e "${BLANCO} 📦 CATEGORÍA: ${VERDE_BRILLANTE}$nombre_categoria${RESET}"
     echo -e "${CIAN}══════════════════════════════════════════════════${RESET}\n"
-    
-    # Mostrar opciones de la categoría
-    local -n lista="$categoria"
-    local opciones=""
+
     local contador=1
     while IFS= read -r line; do
         [ -z "$line" ] && continue
         local nombre_mostrado="${line%%|*}"
-        opciones+="  $contador) $nombre_mostrado\n"
+        echo -e "  $contador) $nombre_mostrado"
         ((contador++))
-    done <<< "$lista"
-    
-    echo -e "$opciones"
+    done <<< "$raw_data"
+
     echo -e "\n  ${AZUL}a)${RESET} Instalar TODOS los programas de esta categoría"
     echo -e "  ${AZUL}s)${RESET} Seleccionar programas individualmente (con FZF)"
     echo -e "  ${AZUL}v)${RESET} Volver al menú principal"
-    
+
     echo -ne "\n${AMARILLO}Seleccione una opción: ${RESET}"
     read -r opcion
-    
+
     case "$opcion" in
         a|A)
-            local paquetes_seleccionados="$lista"
-            instalar_paquetes "$categoria"
+            instalar_paquetes "$raw_data"
             ;;
         s|S)
             local seleccionados
-            seleccionados=$(seleccionar_programas "$categoria")
+            seleccionados=$(seleccionar_programas "$cat_key")
             if [ -n "$seleccionados" ]; then
-                # Convertir selección en formato de lista
-                local lista_seleccion=""
-                while IFS= read -r pkg; do
-                    [ -z "$pkg" ] && continue
-                    # Buscar el nombre mostrado correspondiente
-                    while IFS= read -r line; do
-                        [ -z "$line" ] && continue
-                        local nombre_paquete="${line##*|}"
-                        if [[ "$nombre_paquete" == "$pkg" ]]; then
-                            lista_seleccion+="$line\n"
-                            break
-                        fi
-                    done <<< "$lista"
-                done <<< "$seleccionados"
-                
-                # Crear array temporal para instalar
-                eval "temp_lista=\"$lista_seleccion\""
-                instalar_paquetes temp_lista
+                instalar_paquetes "$seleccionados"
             fi
             ;;
         v|V)
@@ -697,10 +480,10 @@ menu_categoria() {
             ;;
         *)
             pintar "$ROJO" "Opción no válida."
-            sleep 2
+            sleep 1
             ;;
     esac
-    
+
     echo ""
     read -p "Presione Enter para continuar..."
 }
@@ -744,9 +527,9 @@ menu_principal() {
                 if [[ "$confirm" == "s" || "$confirm" == "S" ]]; then
                     for cat in escritorio desarrollo sistemas seguridad utilidades scan4me stk; do
                         echo -e "\n${CIAN}📦 Instalando categoría: $cat${RESET}"
-                        instalar_paquetes "$cat"
+                        instalar_paquetes "${CATEGORIAS[$cat]}"
                     done
-                    pintar "$VERDE_BRILLANTE" "\n✔ ¡Todas las categorías han sido instaladas!"
+                    pintar "$VERDE_BRILLANTE" "\n✔ ¡Todas las categorías han sido procesadas!"
                 fi
                 read -p "Presione Enter para continuar..."
                 ;;
@@ -763,8 +546,6 @@ menu_principal() {
 }
 
 # --- CAPTURA DE SEÑALES ---
-trap salir SIGINT SIGTERM
-
 salir() {
     echo ""
     pintar "$VERDE" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -772,6 +553,7 @@ salir() {
     pintar "$VERDE" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     exit 0
 }
+trap salir SIGINT SIGTERM
 
 # --- VERIFICACIÓN DE FZF ---
 if ! command -v fzf &>/dev/null; then
