@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.1.1"
+V="2.1.3 la reforma logo + menú"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
-# --- CONFIGURACIÓN DE COLORES (Normalizados) ---
+# --- CONFIGURACIÓN DE COLORES ---
 RESET='\e[0m'
 NEGRITA='\e[1m'
 VERDE_BRILLANTE='\e[92m'
@@ -49,7 +49,6 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Inicializar log
 if [ ! -f "$LOG_FILE" ]; then
     umask 027
     touch "$LOG_FILE" 2>/dev/null
@@ -94,134 +93,136 @@ case "$OS_ID" in
         ;;
 esac
 
-# --- LOGO PROPIO DE INSTALL4ME (VERSIÓN COMPLETA) ---
 mostrar_logo() {
-    echo -e "${AZUL_BRILLANTE}  ██╗███╗   ██╗███████╗████████╗█████╗  ██╗     ██╗     ██╗  ██╗███╗   ███╗███████╗${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██║████╗  ██║██╔════╝╚══██╔══╝██╔══██╗██║     ██║     ██║  ██║████╗ ████║██╔════╝${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██║██╔██╗ ██║███████╗   ██║   ███████║██║     ██║     ███████║██╔████╔██║█████╗  ${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██║██║╚██╗██║╚════██║   ██║   ██╔══██║██║     ██║     ╚════██║██║╚██╔╝██║██╔══╝  ${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ██║██║ ╚████║███████║   ██║   ██║  ██║███████╗███████╗     ██║██║ ╚═╝ ██║███████╗${RESET}"
-    echo -e "${AZUL_BRILLANTE}  ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝     ╚═╝╚═╝     ╚═╝╚══════╝${RESET}"
-    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo -e "  ${VERDE_BRILLANTE}🚀 INSTALL4ME v${V}${RESET}  -  ${AMARILLO}Sistema:${RESET} ${AZUL}${OS_ID:-"Desconocido"}${RESET}  ${AMARILLO}Gestor:${RESET} ${AZUL}${Package:-"Desconocido"}${RESET}"
-    echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo ""
+    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    
+    # Animación fluida de 0.5 segundos (10 fotogramas)
+    for i in "${!frames[@]}"; do
+        echo -ne "\033[H" # Mueve el cursor a la esquina superior izquierda sin parpadeos
+        echo -e "${AZUL_BRILLANTE}  ┌─────────────────────────────────────────┐${RESET}"
+        echo -e "${AZUL_BRILLANTE}  │ ${BLANCO}${NEGRITA}I N S T A L L  4  M E${RESET}${AZUL_BRILLANTE}   [${VERDE_BRILLANTE}${frames[$i]}${AZUL_BRILLANTE}] AutoInstall │${RESET}"
+        echo -e "${AZUL_BRILLANTE}  └─────────────────────────────────────────┘${RESET}"
+        echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        echo -e "  ${VERDE_BRILLANTE}🚀 v${V}${RESET} - ${AMARILLO}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET}"
+        echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        echo ""
+        sleep 0.05
+    done
 }
 
-# --- DEFINICIÓN DE PAQUETES POR CATEGORÍA ---
+
+# --- DEFINICIÓN DE PAQUETES (FORMATO 2 PARÁMETROS: paquete|descripción) ---
 declare -A CATEGORIAS
 
 CATEGORIAS["escritorio"]="
-firefox|firefox
-chromium|chromium
-google-chrome|google-chrome
-brave-browser|brave-browser
-libreoffice|libreoffice
-gimp|gimp
-inkscape|inkscape
-telegram|telegram-desktop
-vlc|vlc
-mpv|mpv
+firefox|Navegador web de código abierto rápido y privado
+chromium|Navegador web código abierto base de Chrome
+google-chrome|Navegador web oficial de Google
+brave-browser|Navegador enfocado en privacidad y bloqueo de publicidad
+libreoffice|Suite ofimática completa (procesador, tablas, presentaciones)
+gimp|Editor de imágenes y manipulación fotográfica avanzado
+inkscape|Editor de gráficos vectoriales SVG
+telegram|Cliente oficial de la mensajería Telegram
+vlc|Reproductor multimedia universal para audio y vídeo
+mpv|Reproductor de medios ligero pero potente por línea de comandos
 "
 
 CATEGORIAS["desarrollo"]="
-Visual Studio Code|code
-Neovim|neovim
-Vim|vim
-Git|git
-GitHub CLI|gh
-Docker|docker
-Docker Compose|docker-compose
-Node.js|nodejs
-npm|npm
-Python|python3
-pip|python3-pip
-OpenJDK 17|openjdk-17-jdk
-Go|golang
-Rust|rustc
-Ruby|ruby
+code|Editor Visual Studio Code
+neovim|Editor de texto extensible basado en Vim
+vim|Editor de texto clásico interactivo para terminal
+git|Sistema de control de versiones distribuido
+gh|Herramienta oficial de línea de comandos para GitHub
+docker|Plataforma de despliegue de contenedores de software
+docker-compose|Herramienta para definir y ejecutar aplicaciones Docker multicontenedor
+nodejs|Entorno de ejecución para JavaScript en el servidor
+npm|Gestor de paquetes predeterminado para Node.js
+python3|Lenguaje de programación interpretado de propósito general
+python3-pip|Gestor de paquetes y librerías para Python
+openjdk-17-jdk|Entorno de desarrollo de Java (LTS)
+golang|Lenguaje de programación de código abierto compilado y eficiente
+rustc|Compilador del lenguaje de programación Rust
+ruby|Lenguaje de programación dinámico y orientado a objetos
 "
 
 CATEGORIAS["sistemas"]="
-htop|htop
-btop|btop
-glances|glances
-iotop|iotop
-ncdu|ncdu
-duf|duf
-neofetch|neofetch
-inxi|inxi
-lshw|lshw
-gparted|gparted
+htop|Visualizador interactivo de procesos en tiempo real
+btop|Monitor de recursos del sistema en terminal con interfaz moderna
+glances|Herramienta de monitorización completa en terminal
+iotop|Monitor de uso de disco e I/O por proceso
+ncdu|Analizador de uso de disco en terminal con interfaz ncurses
+duf|Utilidad mejorada para ver el espacio y uso de disco
+neofetch|Herramienta para mostrar información del sistema y logo OS
+inxi|Script de información completa del hardware y sistema
+lshw|Listador detallado del hardware de la máquina
+gparted|Editor gráfico de particiones de disco
 "
 
 CATEGORIAS["seguridad"]="
-Nmap|nmap
-Masscan|masscan
-Wireshark|wireshark
-Tcpdump|tcpdump
-Aircrack-ng|aircrack-ng
-Hashcat|hashcat
-John the Ripper|john
-Hydra|hydra
-SQLmap|sqlmap
-Nikto|nikto
-Metasploit|metasploit-framework
-ClamAV|clamav
-Fail2ban|fail2ban
+nmap|Escáner de redes y auditoría de seguridad de puertos
+masscan|Escáner masivo de puertos IP a alta velocidad
+wireshark|Analizador de tráfico y protocolos de red
+tcpdump|Capturador y analizador de paquetes por línea de comandos
+aircrack-ng|Suite de auditoría para redes inalámbricas Wi-Fi
+hashcat|Herramienta avanzada de recuperación y cracking de contraseñas
+john|Cracker de contraseñas rápido y multisistema
+hydra|Herramienta de ataque por fuerza bruta a servicios de red
+sqlmap|Herramienta automatizada de detección y explotación de SQLi
+nikto|Escáner de vulnerabilidades en servidores web
+metasploit-framework|Framework para pruebas de penetración y explotación
+clamav|Motor antivirus de código abierto para Linux
+fail2ban|Prevención de intrusiones mediante bloqueo de IPs
 "
 
 CATEGORIAS["utilidades"]="
-FZF|fzf
-Ripgrep|ripgrep
-FD|fd-find
-Bat|bat
-Exa|exa
-Zoxide|zoxide
-Tmux|tmux
-Screen|screen
-Ranger|ranger
-Midnight Commander|mc
-Nano|nano
+fzf|Buscador difuso interactivo por línea de comandos
+ripgrep|Buscador de texto ultra rápido en archivos
+fd-find|Alternativa simple, rápida y amigable al comando find
+bat|Clon de cat con resaltado de sintaxis y manejo de git
+exa|Reemplazo moderno para el comando ls con colores y árbol
+zoxide|Navegación rápida entre directorios frecuentes (cd mejorado)
+tmux|Multiplexor de terminales para sesiones persistentes
+screen|Multiplexor de terminal clásico
+ranger|Gestor de archivos para terminal con atajos tipo Vim
+mc|Gestor de archivos en consola de doble panel
+nano|Editor de texto sencillo y directo en consola
 "
 
 CATEGORIAS["scan4me"]="
-Masscan|masscan
-Nmap|nmap
-Gobuster|gobuster
-Feroxbuster|feroxbuster
-Nikto|nikto
-WPScan|wpscan
-Sublist3r|sublist3r
-Subfinder|subfinder
-Nuclei|nuclei
-WhatWeb|whatweb
-Dnsrecon|dnsrecon
-Enum4linux|enum4linux
-Smbclient|smbclient
-SNMPwalk|snmp
+masscan|Escáner masivo de puertos IP a alta velocidad
+nmap|Escáner de redes y puertos de alto rendimiento
+gobuster|Bruteforce de URLs, directorios y subdominios DNS
+feroxbuster|Herramienta rápida de descubrimiento recursivo de contenido web
+nikto|Escáner de vulnerabilidades de servidores web
+wpscan|Escáner de seguridad especializado en WordPress
+sublist3r|Enumeración de subdominios mediante OSINT
+subfinder|Descubrimiento pasivo de subdominios rápido
+nuclei|Escáner de vulnerabilidades basado en plantillas YAML
+whatweb|Reconocimiento de tecnologías web e identificación de CMS
+dnsrecon|Herramienta de enumeración y reconocimiento DNS
+enum4linux|Herramienta de extracción de datos de equipos SMB/Windows
+smbclient|Cliente de consola para acceso a recursos compartidos SMB
+snmp|Consultas y extracción de datos vía protocolo SNMP
 "
 
 CATEGORIAS["stk"]="
-FZF|fzf
-Xsltproc|xsltproc
-Host|host
-Tput|tput
-Free|free
-Curl|curl
-Wget|wget
-Tar|tar
-Hostname|hostname
-JS Interpreter|js
-JQ|jq
-Rsync|rsync
-Crontab|crontab
+fzf|Buscador difuso interactivo
+xsltproc|Procesador de hojas de estilo XSLT
+host|Utilidad de búsqueda de nombres de dominio DNS
+tput|Herramienta de inicialización y control de terminal
+free|Visualizador del uso de memoria RAM y Swap
+curl|Cliente de transferencia de datos con sintaxis URL
+wget|Descargador de archivos no interactivo desde la web
+tar|Utilidad para empaquetar y desempaquetar archivos
+hostname|Muestra o configura el nombre del sistema
+js|Intérprete de motor JavaScript
+jq|Procesador y filtrador de datos JSON por terminal
+rsync|Sincronización rápida y eficiente de archivos locales o remotos
+crontab|Gestor de tareas programadas en tiempo real
 "
 
-# --- OBTENER NOMBRE / METODO DE INSTALACIÓN ---
 get_package_name() {
     local tool="$1"
-    
     case "$tool" in
         "code") [[ "$Package" == "pacman" ]] && echo "visual-studio-code-bin" || echo "code" ;;
         "gh") [[ "$Package" == "pacman" ]] && echo "github-cli" || echo "gh" ;;
@@ -260,7 +261,6 @@ get_package_name() {
     esac
 }
 
-# --- DESCARGA SEGURA DESDE GITHUB (Scan4me support) ---
 instalar_github_release() {
     local repo=$1
     local binary_name=$2
@@ -295,16 +295,16 @@ instalar_github_release() {
     echo -e "${VERDE}✅ $binary_name instalado en /usr/local/bin/${RESET}"
 }
 
-# --- FUNCIÓN MEJORADA DE INSTALACIÓN HÍBRIDA ---
 instalar_paquetes() {
     local lista_raw="$1"
     local paquetes_a_instalar=()
     local paquetes_especiales=()
 
-    # Separar paquetes estándar de herramientas especiales (Pip/Gem/Git)
     while IFS= read -r line; do
         [ -z "$line" ] && continue
-        local nombre_paquete="${line##*|}"
+        
+        # Extraer correctamente los 2 campos (paquete|descripción)
+        local nombre_paquete="${line%%|*}"
 
         case "$nombre_paquete" in
             wpscan|feroxbuster|subfinder|nuclei|gobuster|whatweb|sublist3r|enum4linux|dnsrecon)
@@ -318,7 +318,6 @@ instalar_paquetes() {
         esac
     done <<< "$lista_raw"
 
-    # 1. Actualización e Instalación vía Gestor Nativo
     if [ ${#paquetes_a_instalar[@]} -gt 0 ]; then
         echo -e "\n${AZUL}🔄 Actualizando repositorios ($Package)...${RESET}"
         case "$Package" in
@@ -347,11 +346,8 @@ instalar_paquetes() {
         done
     fi
 
-    # 2. Instalación de herramientas especiales (Scan4Me / Redes)
     if [ ${#paquetes_especiales[@]} -gt 0 ]; then
         echo -e "\n${MAGENTA}⚙️ Instalando herramientas especializadas/externas...${RESET}"
-        
-        # Pre-requisitos
         command -v git &>/dev/null || apt install -y git 2>/dev/null || dnf install -y git 2>/dev/null
         command -v wget &>/dev/null || apt install -y wget 2>/dev/null
 
@@ -403,7 +399,6 @@ instalar_paquetes() {
         done
     fi
 
-    # Habilitar servicios si se procesó cron
     if [[ " ${paquetes_a_instalar[*]} " =~ "cron" ]] || [[ " ${paquetes_a_instalar[*]} " =~ "cronie" ]]; then
         systemctl enable --now cron 2>/dev/null || systemctl enable --now cronie 2>/dev/null || true
     fi
@@ -411,142 +406,80 @@ instalar_paquetes() {
     pintar "$VERDE_BRILLANTE" "\n✔ Proceso de instalación finalizado."
 }
 
-# --- FUNCIONES DE ESTILO FZF DE STK2 ---
-fzf_estilo() {
-    local prompt_text="$1"
-    local header_text="$2"
-    fzf --ansi \
-        --height=15 \
-        --reverse \
-        --border=rounded \
-        --prompt="➤ $prompt_text: " \
-        --header="$header_text" \
-        --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff"
-}
-
-fzf_menu_principal() {
-    local host_name=$(hostname 2>/dev/null || cat /etc/hostname)
-    local kernel_ver=$(uname -r | cut -d- -f1)
-
-    fzf --ansi \
-        --height=15 \
-        --layout=reverse \
-        --border=rounded \
-        --prompt=" Seleccione Menú-❯ " \
-        --header="--- P A N E L  D E  I N S T A L A C I Ó N ---" \
-        --header-lines=1 \
-        --color="border:#5fafd7,header:#af87ff,prompt:#5fb2ff,pointer:#afff00" \
-        --preview-window="up:25%:border-bottom" \
-        --preview="echo -e '\033[1;36mINFORMACIÓN\033[0m | \033[1;33mFecha:\033[0m $DATE | \033[1;33mHost:\033[0m $host_name | \033[1;33mKernel:\033[0m $kernel_ver'"
-}
-
-fzf_seleccion_multiple() {
-    local prompt_text="$1"
-    local header_text="$2"
-    fzf --ansi \
-        --multi \
-        --height=18 \
-        --reverse \
-        --border=rounded \
-        --prompt="➤ $prompt_text: " \
-        --header="$header_text (TAB: Seleccionar | Shift+TAB: Desmarcar)" \
-        --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff"
-}
-
-# --- MENÚ DE SELECCIÓN DE PROGRAMAS CON FZF (Estilo STK2 con TAB y Ayuda) ---
+# --- SELECCIÓN INDIVIDUAL Y DIRECTA CON FZF ---
 seleccionar_programas() {
     local cat_key="$1"
     local nombre_cat="$2"
     local raw_data="${CATEGORIAS[$cat_key]}"
-    
-    local opciones=""
-    while IFS= read -r line; do
-        [ -z "$line" ] && continue
-        local nombre_mostrado="${line%%|*}"
-        local paquete="${line##*|}"
-        opciones+="$nombre_mostrado ($paquete)\n"
-    done <<< "$raw_data"
+
+    if [ -z "$raw_data" ]; then
+        echo -e "\033[31mError: No hay datos para la categoría '$cat_key'\033[0m" >&2
+        return 1
+    fi
 
     local seleccionados
-    seleccionados=$(echo -e "$opciones" | fzf_seleccion_multiple "Seleccione programas" "PROGRAMAS - $nombre_cat")
+    seleccionados=$(echo "$raw_data" | sed '/^[[:space:]]*$/d' | fzf --ansi \
+        --multi \
+        --height=18 \
+        --reverse \
+        --border=rounded \
+        --delimiter="|" \
+        --with-nth=1 \
+        --prompt="➤ Seleccione programas: " \
+        --header="PROGRAMAS - $nombre_cat (TAB: Marcar | Shift+TAB: Desmarcar)" \
+        --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff" \
+        --preview-window="right:50%:wrap" \
+        --preview='
+            echo -e "\033[1;36mDETALLES DEL PROGRAMA\033[0m\n"
+            echo -e "\033[1;33m➜\033[0m {2..}"
+        ')
     
     if [ -n "$seleccionados" ]; then
-        # Mapear las selecciones devueltas con el formato original de raw_data
-        local resultado=""
-        while IFS= read -r item; do
-            [ -z "$item" ] && continue
-            local pkg_name=$(echo "$item" | awk -F'(' '{print $2}' | tr -d ')')
-            local line_match=$(echo "$raw_data" | grep "|${pkg_name}$")
-            if [ -n "$line_match" ]; then
-                resultado+="$line_match\n"
-            fi
-        done <<< "$seleccionados"
-        echo -e "$resultado"
+        echo "$seleccionados"
     fi
 }
 
-# --- MENÚ DE INSTALACIÓN POR CATEGORÍA ---
 menu_categoria() {
     local cat_key="$1"
     local nombre_categoria="$2"
-    local raw_data="${CATEGORIAS[$cat_key]}"
-
-    while true; do
-        clear
-        mostrar_logo
-
-        local opciones_cat="1. 🚀 Instalar TODOS los programas
-2. 🎯 Seleccionar individualmente (TAB = Selección múltiple)
-3. ↩ Volver"
-
-        local accion
-        accion=$(echo -e "$opciones_cat" | fzf_estilo "Acción" "CATEGORÍA: $nombre_categoria")
-        
-        if [[ $? -ne 0 || "$accion" == *"Volver"* || -z "$accion" ]]; then 
-            break 
-        fi
-
-        case ${accion:0:1} in
-            1)
-                instalar_paquetes "$raw_data"
-                echo ""
-                read -p "Presione Enter para continuar..."
-                ;;
-            2)
-                local seleccionados
-                seleccionados=$(seleccionar_programas "$cat_key" "$nombre_categoria")
-                if [ -n "$seleccionados" ]; then
-                    instalar_paquetes "$seleccionados"
-                    echo ""
-                    read -p "Presione Enter para continuar..."
-                fi
-                ;;
-        esac
-    done
+    
+    clear
+    mostrar_logo
+    
+    local seleccionados
+    seleccionados=$(seleccionar_programas "$cat_key" "$nombre_categoria")
+    
+    if [ -n "$seleccionados" ]; then
+        instalar_paquetes "$seleccionados"
+        echo ""
+        read -p "Presione Enter para continuar..."
+    fi
 }
 
-# --- MENÚ PRINCIPAL CON ESTILO STK2 ---
 menu_principal() {
     while true; do
         clear
         mostrar_logo
         
-        opciones="ICONO | CATEGORÍA       | DESCRIPCIÓN
-1. 🖥️ | ESCRITORIO      | Navegadores, ofimática, multimedia
-2. 🔧 | DESARROLLO      | Editores, compiladores, lenguajes
-3. 🛠️ | SISTEMAS        | Monitoreo, administración, diagnóstico
-4. 🔒 | SEGURIDAD       | Herramientas de seguridad y auditoría
-5. 📦 | UTILIDADES      | Herramientas generales del sistema
-6. 🔍 | SCAN4ME         | Herramientas de escaneo y reconocimiento
-7. 📋 | STK DEPENDENCIAS| Dependencias del STK Toolkit
-8. 🔄 | MODO MASIVO     | Instalar TODAS las categorías
-0. ❌ | SALIR           | Control+C"
+        local opciones="1. 🖥️  ESCRITORIO      - Navegadores, ofimática, multimedia
+2. 🔧  DESARROLLO      - Editores, compiladores, lenguajes
+3. 🛠️  SISTEMAS        - Monitoreo, administración, diagnóstico
+4. 🔒  SEGURIDAD       - Herramientas de seguridad y auditoría
+5. 📦  UTILIDADES      - Herramientas generales del sistema
+6. 🔍  SCAN4ME         - Herramientas de escaneo y reconocimiento
+7. 📋  STK DEPENDENCIAS- Dependencias del STK Toolkit
+8. 🔄  MODO MASIVO     - Instalar TODAS las categorías
+0. ❌  SALIR           - Salir del script"
 
-        seleccion=$(echo -e "$opciones" | fzf_menu_principal)
+        local seleccion
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=15 --reverse --border=rounded --prompt=" Seleccione Opción ❯ ")
 
-        if [ $? -ne 0 ] || [ -z "$seleccion" ]; then salir; fi
+        [ -z "$seleccion" ] && salir
 
-        case ${seleccion%%.*} in
+        local opcion_num
+        opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
+
+        case "$opcion_num" in
             1) menu_categoria "escritorio" "Escritorio" ;;
             2) menu_categoria "desarrollo" "Desarrollo" ;;
             3) menu_categoria "sistemas" "Sistemas" ;;
@@ -559,9 +492,9 @@ menu_principal() {
                 mostrar_logo
                 echo -e "\n${AZUL}🔄 Instalando TODAS las categorías...${RESET}"
                 echo -e "${ROJO}⚠️  Esto instalará todos los programas de todas las categorías.${RESET}"
-                echo -e "${AMARILLO}¿Está seguro? (s/N): ${RESET}"
+                echo -en "${AMARILLO}¿Está seguro? (s/N): ${RESET}"
                 read -r confirm
-                if [[ "$confirm" == "s" || "$confirm" == "S" ]]; then
+                if [[ "$confirm" =~ ^[sS]$ ]]; then
                     for cat in escritorio desarrollo sistemas seguridad utilidades scan4me stk; do
                         echo -e "\n${CIAN}📦 Instalando categoría: $cat${RESET}"
                         instalar_paquetes "${CATEGORIAS[$cat]}"
@@ -571,11 +504,11 @@ menu_principal() {
                 read -p "Presione Enter para continuar..."
                 ;;
             0) salir ;;
+            *) echo "Opción no válida"; sleep 1 ;;
         esac
     done
 }
 
-# --- CAPTURA DE SEÑALES ---
 salir() {
     echo ""
     pintar "$VERDE" "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -585,7 +518,6 @@ salir() {
 }
 trap salir SIGINT SIGTERM
 
-# --- VERIFICACIÓN DE FZF ---
 if ! command -v fzf &>/dev/null; then
     echo -e "${AMARILLO}⚠️  fzf no está instalado. Instalando...${RESET}"
     case "$Package" in
@@ -600,5 +532,4 @@ if ! command -v fzf &>/dev/null; then
     fi
 fi
 
-# --- EJECUCIÓN PRINCIPAL ---
 menu_principal "$@"
