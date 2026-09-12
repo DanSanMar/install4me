@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.1.3 new menu"
+V="2.2.0 menu-fix"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -94,24 +94,16 @@ case "$OS_ID" in
 esac
 
 mostrar_logo() {
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    
-    # Animación fluida de 0.5 segundos (10 fotogramas)
-    for i in "${!frames[@]}"; do
-        echo -ne "\033[H" # Mueve el cursor a la esquina superior izquierda sin parpadeos
-        echo -e "${AZUL_BRILLANTE}            ┌─────────────────────────────────────────┐${RESET}"
-        echo -e "${AZUL_BRILLANTE}            │ ${BLANCO}${NEGRITA}I N S T A L L  4  M E${RESET}${AZUL_BRILLANTE}   [${VERDE_BRILLANTE}${frames[$i]}${AZUL_BRILLANTE}] AutoInstall │${RESET}"
-        echo -e "${AZUL_BRILLANTE}            └─────────────────────────────────────────┘${RESET}"
-        echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-        echo -e "            ${VERDE_BRILLANTE}🚀 v${V}${RESET} - ${AMARILLO}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET}"
-        echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-        echo ""
-        sleep 0.05
-    done
+    echo -e "${AZUL_BRILLANTE}            ┌─────────────────────────────────────────┐${RESET}"
+    echo -e "${AZUL_BRILLANTE}            │ ${BLANCO}${NEGRITA}I N S T A L L  4  M E${RESET}${AZUL_BRILLANTE}   [${VERDE_BRILLANTE}⚡${AZUL_BRILLANTE}] AutoInstall │${RESET}"
+    echo -e "${AZUL_BRILLANTE}            └─────────────────────────────────────────┘${RESET}"
+    echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "    ${VERDE_BRILLANTE}🚀 v${V}${RESET} - ${AMARILLO}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET}"
+    echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo ""
 }
 
-
-# --- DEFINICIÓN DE PAQUETES (FORMATO 2 PARÁMETROS: paquete|descripción) ---
+# --- DEFINICIÓN DE PAQUETES ---
 declare -A CATEGORIAS
 
 CATEGORIAS["escritorio"]="
@@ -326,8 +318,6 @@ instalar_paquetes() {
 
     while IFS= read -r line; do
         [ -z "$line" ] && continue
-        
-        # Extraer correctamente los 2 campos (paquete|descripción)
         local nombre_paquete="${line%%|*}"
 
         case "$nombre_paquete" in
@@ -430,7 +420,77 @@ instalar_paquetes() {
     pintar "$VERDE_BRILLANTE" "\n✔ Proceso de instalación finalizado."
 }
 
-# --- SELECCIÓN INDIVIDUAL Y DIRECTA CON FZF ---
+# --- NUEVA FUNCIÓN: INSTALAR GESTORES ADICIONALES ---
+menu_gestores_paquetes() {
+    while true; do
+        clear
+        mostrar_logo
+        local opciones="1. 🧊 Flatpak + Flathub  - Sistema de paquetes sandbox universal
+2. 📦 Snapcraft           - Gestor de paquetes canónico (Ubuntu/Debian/Fedora)
+3. 🚀 AppImage Runtime    - Soporte Fuse para ejecutables portátiles
+4. 🏹 AUR Helper (yay)    - Para distros basadas en Arch Linux
+0. ⬅️ Volver al menú principal"
+
+        local seleccion
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=15 --reverse --border=rounded --prompt=" Seleccione Gestor ❯ ")
+        [ -z "$seleccion" ] && return
+
+        local opcion_num
+        opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
+
+        case "$opcion_num" in
+            1)
+                echo -e "${AZUL}📦 Instalando Flatpak...${RESET}"
+                case "$Package" in
+                    apt) apt update && apt install -y flatpak ;;
+                    dnf) dnf install -y flatpak ;;
+                    pacman) pacman -S --noconfirm flatpak ;;
+                    zypper) zypper install -y flatpak ;;
+                esac
+                flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+                echo -e "${VERDE}✅ Flatpak configurado con Flathub.${RESET}"
+                sleep 2
+                ;;
+            2)
+                echo -e "${AZUL}📦 Instalando Snap...${RESET}"
+                case "$Package" in
+                    apt) apt update && apt install -y snapd ;;
+                    dnf) dnf install -y snapd && systemctl enable --now snapd.socket ;;
+                    pacman) pacman -S --noconfirm snapd && systemctl enable --now snapd.socket ;;
+                    zypper) zypper install -y snapd && systemctl enable --now snapd ;;
+                esac
+                ln -sf /var/lib/snapd/snap /snap 2>/dev/null || true
+                echo -e "${VERDE}✅ Snapd instalado correctamente.${RESET}"
+                sleep 2
+                ;;
+            3)
+                echo -e "${AZUL}📦 Instalando soporte FUSE para AppImage...${RESET}"
+                case "$Package" in
+                    apt) apt update && apt install -y libfuse2 fuse3 ;;
+                    dnf) dnf install -y fuse fuse3 ;;
+                    pacman) pacman -S --noconfirm fuse2 fuse3 ;;
+                    zypper) zypper install -y fuse fuse3 ;;
+                esac
+                echo -e "${VERDE}✅ Soporte AppImage instalado.${RESET}"
+                sleep 2
+                ;;
+            4)
+                if [[ "$Package" != "pacman" ]]; then
+                    echo -e "${ROJO}⚠️ 'yay' solo se puede instalar en distribuciones basadas en Arch Linux.${RESET}"
+                else
+                    echo -e "${AZUL}📦 Instalando dependencias e instalando yay...${RESET}"
+                    pacman -S --needed --noconfirm git base-devel
+                    local target_user="${SUDO_USER:-$USER}"
+                    su - "$target_user" -c "cd /tmp && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm"
+                    echo -e "${VERDE}✅ Helper AUR 'yay' instalado correctamente.${RESET}"
+                fi
+                sleep 2
+                ;;
+            0) return ;;
+        esac
+    done
+}
+
 seleccionar_programas() {
     local cat_key="$1"
     local nombre_cat="$2"
@@ -484,13 +544,13 @@ menu_all4me() {
     while true; do
         clear
         mostrar_logo
-        local opciones="1. SCAN4ME     - Herramientas de escaneo y auditoría
-2. ADMIN4ME    - Herramientas de administración de sistemas
-3. STOP4ME     - Herramientas de seguridad y bloqueo
-4. NOTE4ME     - Notas y documentación
-5. DOCKER4ME   - Contenedores y orquestación
-6. MOVE4ME     - Transferencia y sincronización
-0. ❌ SALIR     - Volver al menú principal"
+        local opciones="1. 🔍 SCAN4ME    - Herramientas de escaneo y auditoría
+2. ⚙️  ADMIN4ME   - Herramientas de administración de sistemas
+3. 🛑 STOP4ME    - Herramientas de seguridad y bloqueo
+4. 📝 NOTE4ME    - Notas y documentación
+5. 🐳 DOCKER4ME  - Contenedores y orquestación
+6. 🔄 MOVE4ME    - Transferencia y sincronización
+0. ⬅️ VOLVER     - Volver al menú principal"
 
         local seleccion
         seleccion=$(echo -e "$opciones" | fzf --ansi --height=18 --reverse --border=rounded --prompt=" Seleccione Opción ❯ ")
@@ -523,7 +583,8 @@ menu_principal() {
 3. 🛠️  SISTEMAS        - Monitoreo, administración, diagnóstico
 4. 🔒  SEGURIDAD       - Herramientas de seguridad y auditoría
 5. 📦  UTILIDADES      - Herramientas generales del sistema
-6.     ALL4ME          - Paquetes necesarios incluidos en cada programa personal
+6. 🚀  ALL4ME          - Paquetes necesarios incluidos en cada programa personal
+7. 🍱  GESTORES PKG    - Instalar Flatpak, Snap, AppImage o AUR (yay)
 0. ❌  SALIR           - Salir del script"
 
         local seleccion
@@ -541,6 +602,7 @@ menu_principal() {
             4) menu_categoria "seguridad" "Seguridad" ;;
             5) menu_categoria "utilidades" "Utilidades" ;;
             6) menu_all4me ;;
+            7) menu_gestores_paquetes ;;
             0) salir ;;
             *) echo "Opción no válida"; sleep 1 ;;
         esac
