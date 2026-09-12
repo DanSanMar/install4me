@@ -1,23 +1,29 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.2.0 menu-fix"
+V="2.2.2"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
-# --- CONFIGURACIÓN DE COLORES ---
+# --- CONFIGURACIÓN DE COLORES EXTENDIDA ---
 RESET='\e[0m'
 NEGRITA='\e[1m'
 VERDE_BRILLANTE='\e[92m'
 VERDE='\e[32m'
+AMARILLO_BRILLANTE='\e[93m'
 AMARILLO='\e[33m'
-AZUL='\e[34m'
 AZUL_BRILLANTE='\e[94m'
+AZUL_CLARO='\e[96m'
+AZUL_OSCURO='\e[34m'
+AZUL='\e[34m'
+CIAN_BRILLANTE='\e[96m'
 CIAN='\e[36m'
 MAGENTA='\e[35m'
-ROJO='\e[31m'
 ROJO_BRILLANTE='\e[91m'
+ROJO='\e[31m'
+BLANCO_NEGRITA='\e[1;97m'
 BLANCO='\e[97m'
+GRIS_CLARO='\e[37m'
 
 # --- CONFIGURACIÓN DE LOGS ---
 LOG_FILE="/var/log/install4me.log"
@@ -93,13 +99,83 @@ case "$OS_ID" in
         ;;
 esac
 
+obtener_color_unico() {
+    local indice=$1
+    shift
+    local colores_usados=("$@")
+    local paleta=(
+        "$AZUL_BRILLANTE" "$VERDE_BRILLANTE" "$AMARILLO_BRILLANTE" 
+        "$CIAN_BRILLANTE" "$ROJO_BRILLANTE" "$AZUL_CLARO" 
+        "$VERDE" "$AMARILLO" "$CIAN" "$ROJO"
+    )
+
+    local color_propuesto="${paleta[$((indice % ${#paleta[@]}))]}"
+
+    # Si el color ya se usó en esta iteración, tomamos el siguiente en la paleta
+    for usado in "${colores_usados[@]}"; do
+        if [[ "$color_propuesto" == "$usado" ]]; then
+            color_propuesto="${paleta[$(((indice + 1) % ${#paleta[@]}))]}"
+            break
+        fi
+    done
+
+    echo "$color_propuesto"
+}
+
+# Elimina colores ANSI para medir la longitud real visible
+medir_texto() {
+    local texto="$1"
+    echo -e "$texto" | sed -E 's/\x1B\[[0-9;]*[a-zA-Z]//g; s/\e\[[0-9;]*[a-zA-Z]//g' | wc -m
+}
+
+# Imprime con echo -e añadiendo el margen exacto a la izquierda
+imprimir_centrado() {
+    local texto="$1"
+    local ancho_terminal
+    ancho_terminal=$(tput cols 2>/dev/null || echo 80)
+    
+    local largo_real
+    largo_real=$(medir_texto "$texto")
+    
+    local margen=$(( (ancho_terminal - largo_real) / 2 ))
+    [ $margen -lt 0 ] && margen=0
+    
+    # Genera los espacios del margen de forma limpia
+    local espacios=""
+    if [ $margen -gt 0 ]; then
+        espacios=$(printf '%*s' "$margen" "")
+    fi
+    
+    echo -e "${espacios}${texto}"
+}
+
 mostrar_logo() {
-    echo -e "${AZUL_BRILLANTE}            ┌─────────────────────────────────────────┐${RESET}"
-    echo -e "${AZUL_BRILLANTE}            │ ${BLANCO}${NEGRITA}I N S T A L L  4  M E${RESET}${AZUL_BRILLANTE}   [${VERDE_BRILLANTE}⚡${AZUL_BRILLANTE}] AutoInstall │${RESET}"
-    echo -e "${AZUL_BRILLANTE}            └─────────────────────────────────────────┘${RESET}"
-    echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo -e "    ${VERDE_BRILLANTE}🚀 v${V}${RESET} - ${AMARILLO}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET}"
-    echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    local HORA_ACTUAL SEGUNDOS
+    HORA_ACTUAL=$(date +"%H:%M:%S")
+    SEGUNDOS=$(date +"%S")
+
+    # Índices base desfasados
+    local idx_install=$(( 10#$SEGUNDOS % 10 ))
+    local idx_num4=$(( (10#$SEGUNDOS + 3) % 10 ))
+    local idx_me=$(( (10#$SEGUNDOS + 6) % 10 ))
+    local idx_ver=$(( (10#$SEGUNDOS + 8) % 10 ))
+
+    # Asignación de colores
+    local C_INSTALL C_4 C_ME C_VER
+    C_INSTALL=$(obtener_color_unico "$idx_install")
+    C_4=$(obtener_color_unico "$idx_num4" "$C_INSTALL")
+    C_ME=$(obtener_color_unico "$idx_me" "$C_INSTALL" "$C_4")
+    C_VER=$(obtener_color_unico "$idx_ver" "$C_INSTALL" "$C_4" "$C_ME")
+
+    # Líneas construidas
+    local linea_titulo="${AZUL_BRILLANTE}--- ⚡ ${C_INSTALL}INSTALL${C_4}4${C_ME}ME${RESET} ${AZUL_OSCURO}| ${C_VER}v${V}${RESET} ${AZUL_OSCURO}| ${BLANCO}:${HORA_ACTUAL}: ${AZUL_BRILLANTE}⚡---${RESET}"
+    local linea_info="${VERDE_BRILLANTE}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET} | ${CIAN}User:${RESET} ${BLANCO}${SUDO_USER:-$USER}${RESET}"
+    local linea_divisor="${AZUL_BRILLANTE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+    # Renderizado centrado
+    imprimir_centrado "$linea_titulo"
+    imprimir_centrado "$linea_info"
+    imprimir_centrado "$linea_divisor"
     echo ""
 }
 
