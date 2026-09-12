@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.1.3 la reforma logo + menú"
+V="2.1.3 new menu"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -99,12 +99,12 @@ mostrar_logo() {
     # Animación fluida de 0.5 segundos (10 fotogramas)
     for i in "${!frames[@]}"; do
         echo -ne "\033[H" # Mueve el cursor a la esquina superior izquierda sin parpadeos
-        echo -e "${AZUL_BRILLANTE}  ┌─────────────────────────────────────────┐${RESET}"
-        echo -e "${AZUL_BRILLANTE}  │ ${BLANCO}${NEGRITA}I N S T A L L  4  M E${RESET}${AZUL_BRILLANTE}   [${VERDE_BRILLANTE}${frames[$i]}${AZUL_BRILLANTE}] AutoInstall │${RESET}"
-        echo -e "${AZUL_BRILLANTE}  └─────────────────────────────────────────┘${RESET}"
-        echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-        echo -e "  ${VERDE_BRILLANTE}🚀 v${V}${RESET} - ${AMARILLO}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET}"
-        echo -e "${CIAN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        echo -e "${AZUL_BRILLANTE}            ┌─────────────────────────────────────────┐${RESET}"
+        echo -e "${AZUL_BRILLANTE}            │ ${BLANCO}${NEGRITA}I N S T A L L  4  M E${RESET}${AZUL_BRILLANTE}   [${VERDE_BRILLANTE}${frames[$i]}${AZUL_BRILLANTE}] AutoInstall │${RESET}"
+        echo -e "${AZUL_BRILLANTE}            └─────────────────────────────────────────┘${RESET}"
+        echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+        echo -e "            ${VERDE_BRILLANTE}🚀 v${V}${RESET} - ${AMARILLO}OS:${RESET} ${AZUL}${OS_ID:-"N/A"}${RESET} | ${AMARILLO}Pkg:${RESET} ${AZUL}${Package:-"N/A"}${RESET}"
+        echo -e "${CIAN}            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
         echo ""
         sleep 0.05
     done
@@ -205,7 +205,7 @@ smbclient|Cliente de consola para acceso a recursos compartidos SMB
 snmp|Consultas y extracción de datos vía protocolo SNMP
 "
 
-CATEGORIAS["stk"]="
+CATEGORIAS["admin4me"]="
 fzf|Buscador difuso interactivo
 xsltproc|Procesador de hojas de estilo XSLT
 host|Utilidad de búsqueda de nombres de dominio DNS
@@ -219,6 +219,30 @@ js|Intérprete de motor JavaScript
 jq|Procesador y filtrador de datos JSON por terminal
 rsync|Sincronización rápida y eficiente de archivos locales o remotos
 crontab|Gestor de tareas programadas en tiempo real
+"
+
+CATEGORIAS["stop4me"]="
+fzf|Buscador difuso interactivo para la gestión y menús
+ufw|Cortafuegos simple y gestor de reglas de red
+host|Utilidad para resolución DNS inversa de IPs atacantes
+awk|Procesador de texto y analizador de métricas en logs
+grep|Filtrador de patrones de texto para trazas de tráfico
+journalctl|Consultor de registros y eventos del sistema systemd
+"
+
+CATEGORIAS["note4me"]="
+obsidian|Nota y gestión de conocimiento personal
+markdown|Herramientas de edición markdown
+"
+
+CATEGORIAS["docker4me"]="
+docker|Plataforma de contenedores
+docker-compose|Herramienta de orquestación multicontenedor
+"
+
+CATEGORIAS["move4me"]="
+rsync|Sincronización y transferencia de archivos
+rclone|Herramienta de sincronización con almacenamiento en la nube
 "
 
 get_package_name() {
@@ -456,6 +480,39 @@ menu_categoria() {
     fi
 }
 
+menu_all4me() {
+    while true; do
+        clear
+        mostrar_logo
+        local opciones="1. SCAN4ME     - Herramientas de escaneo y auditoría
+2. ADMIN4ME    - Herramientas de administración de sistemas
+3. STOP4ME     - Herramientas de seguridad y bloqueo
+4. NOTE4ME     - Notas y documentación
+5. DOCKER4ME   - Contenedores y orquestación
+6. MOVE4ME     - Transferencia y sincronización
+0. ❌ SALIR     - Volver al menú principal"
+
+        local seleccion
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=18 --reverse --border=rounded --prompt=" Seleccione Opción ❯ ")
+
+        [ -z "$seleccion" ] && return
+
+        local opcion_num
+        opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
+
+        case "$opcion_num" in
+            1) menu_categoria "scan4me" "Scan4Me" ;;
+            2) menu_categoria "admin4me" "Admin4Me" ;;
+            3) menu_categoria "stop4me" "Stop4Me" ;;
+            4) menu_categoria "note4me" "Note4Me" ;;
+            5) menu_categoria "docker4me" "Docker4Me" ;;
+            6) menu_categoria "move4me" "Move4Me" ;;
+            0) return ;;
+            *) echo "Opción no válida"; sleep 1 ;;
+        esac
+    done
+}
+
 menu_principal() {
     while true; do
         clear
@@ -466,13 +523,11 @@ menu_principal() {
 3. 🛠️  SISTEMAS        - Monitoreo, administración, diagnóstico
 4. 🔒  SEGURIDAD       - Herramientas de seguridad y auditoría
 5. 📦  UTILIDADES      - Herramientas generales del sistema
-6. 🔍  SCAN4ME         - Herramientas de escaneo y reconocimiento
-7. 📋  STK DEPENDENCIAS- Dependencias del STK Toolkit
-8. 🔄  MODO MASIVO     - Instalar TODAS las categorías
+6.     ALL4ME          - Paquetes necesarios incluidos en cada programa personal
 0. ❌  SALIR           - Salir del script"
 
         local seleccion
-        seleccion=$(echo -e "$opciones" | fzf --ansi --height=15 --reverse --border=rounded --prompt=" Seleccione Opción ❯ ")
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=18 --reverse --border=rounded --prompt=" Seleccione Opción ❯ ")
 
         [ -z "$seleccion" ] && salir
 
@@ -485,24 +540,7 @@ menu_principal() {
             3) menu_categoria "sistemas" "Sistemas" ;;
             4) menu_categoria "seguridad" "Seguridad" ;;
             5) menu_categoria "utilidades" "Utilidades" ;;
-            6) menu_categoria "scan4me" "Scan4Me" ;;
-            7) menu_categoria "stk" "STK Dependencias" ;;
-            8) 
-                clear
-                mostrar_logo
-                echo -e "\n${AZUL}🔄 Instalando TODAS las categorías...${RESET}"
-                echo -e "${ROJO}⚠️  Esto instalará todos los programas de todas las categorías.${RESET}"
-                echo -en "${AMARILLO}¿Está seguro? (s/N): ${RESET}"
-                read -r confirm
-                if [[ "$confirm" =~ ^[sS]$ ]]; then
-                    for cat in escritorio desarrollo sistemas seguridad utilidades scan4me stk; do
-                        echo -e "\n${CIAN}📦 Instalando categoría: $cat${RESET}"
-                        instalar_paquetes "${CATEGORIAS[$cat]}"
-                    done
-                    pintar "$VERDE_BRILLANTE" "\n✔ ¡Todas las categorías han sido procesadas!"
-                fi
-                read -p "Presione Enter para continuar..."
-                ;;
+            6) menu_all4me ;;
             0) salir ;;
             *) echo "Opción no válida"; sleep 1 ;;
         esac
