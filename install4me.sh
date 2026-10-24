@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.3.1"
+V="2.3.2"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -190,6 +190,8 @@ FLATPAK_APPS["google-chrome"]="com.google.Chrome"
 FLATPAK_APPS["brave-browser"]="com.brave.Browser"
 FLATPAK_APPS["telegram"]="org.telegram.desktop"
 FLATPAK_APPS["vscode"]="com.visualstudio.code"
+FLATPAK_APPS["vscodium"]="com.vscodium.codium"
+FLATPAK_APPS["zed"]="dev.zed.Zed"
 FLATPAK_APPS["obsidian"]="md.obsidian.Obsidian"
 FLATPAK_APPS["onlyoffice"]="org.onlyoffice.desktopeditors"
 FLATPAK_APPS["wps-office"]="com.wps.Office"
@@ -223,9 +225,14 @@ yt-dlp|Descarga de vídeo y audio desde múltiples sitios web
 
 CATEGORIAS["desarrollo_editores"]="
 vscode|Editor Visual Studio Code (Flatpak)
+vscodium|VS Code sin telemetría ni marcas de Microsoft (Flatpak)
+zed|Editor moderno, rápido y colaborativo (Flatpak)
 micro|Editor de texto moderno para terminal con atajos intuitivos
 neovim|Editor de texto extensible basado en Vim
 vim|Editor de texto clásico interactivo para terminal
+kate|Editor gráfico avanzado con LSP y terminal integrada
+geany|Editor ligero con funciones básicas de IDE
+emacs|Editor extensible y configurable con miles de paquetes
 "
 
 CATEGORIAS["desarrollo_versiones"]="
