@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.2.2"
+V="2.3.0"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -182,27 +182,47 @@ mostrar_logo() {
 # --- DEFINICIÓN DE PAQUETES ---
 declare -A CATEGORIAS
 
+# Apps que se instalan vía Flatpak (Flathub) por no estar en los repos oficiales
+# de todas las distribuciones soportadas.
+declare -A FLATPAK_APPS
+FLATPAK_APPS["librewolf"]="io.gitlab.librewolf-community"
+FLATPAK_APPS["google-chrome"]="com.google.Chrome"
+FLATPAK_APPS["brave-browser"]="com.brave.Browser"
+FLATPAK_APPS["telegram"]="org.telegram.desktop"
+FLATPAK_APPS["code"]="com.visualstudio.code"
+FLATPAK_APPS["obsidian"]="md.obsidian.Obsidian"
+FLATPAK_APPS["onlyoffice"]="org.onlyoffice.desktopeditors"
+FLATPAK_APPS["wps-office"]="com.wps.Office"
+
 CATEGORIAS["escritorio_navegadores"]="
 firefox|Navegador web de código abierto rápido y privado
 chromium|Navegador web código abierto base de Chrome
-google-chrome|Navegador web oficial de Google
-brave-browser|Navegador enfocado en privacidad y bloqueo de publicidad
+librewolf|Navegador privado basado en Firefox, sin telemetría (Flatpak)
+google-chrome|Navegador web oficial de Google (Flatpak)
+brave-browser|Navegador enfocado en privacidad y bloqueo de publicidad (Flatpak)
 "
 
 CATEGORIAS["escritorio_ofimatica"]="
 libreoffice|Suite ofimática completa (procesador, tablas, presentaciones)
+onlyoffice|Suite ofimática compatible con formatos de Microsoft Office (Flatpak)
+wps-office|Suite ofimática propietaria de Kingsoft (Flatpak)
 "
 
 CATEGORIAS["escritorio_multimedia"]="
 gimp|Editor de imágenes y manipulación fotográfica avanzado
 inkscape|Editor de gráficos vectoriales SVG
-telegram|Cliente oficial de la mensajería Telegram
+telegram|Cliente oficial de la mensajería Telegram (Flatpak)
 vlc|Reproductor multimedia universal para audio y vídeo
 mpv|Reproductor de medios ligero pero potente por línea de comandos
+krita|Pintura digital, ilustración y animación 2D
+audacity|Grabación y edición de audio multipista
+kdenlive|Editor de vídeo no lineal
+obs-studio|Grabación de pantalla y emisión en directo
+yt-dlp|Descarga de vídeo y audio desde múltiples sitios web
 "
 
 CATEGORIAS["desarrollo_editores"]="
-code|Editor Visual Studio Code
+code|Editor Visual Studio Code (Flatpak)
 neovim|Editor de texto extensible basado en Vim
 vim|Editor de texto clásico interactivo para terminal
 "
@@ -222,7 +242,7 @@ nodejs|Entorno de ejecución para JavaScript en el servidor
 npm|Gestor de paquetes predeterminado para Node.js
 python3|Lenguaje de programación interpretado de propósito general
 python3-pip|Gestor de paquetes y librerías para Python
-openjdk-17-jdk|Entorno de desarrollo de Java (LTS)
+openjdk-jdk|Entorno de desarrollo de Java LTS (21; en Fedora 25)
 golang|Lenguaje de programación de código abierto compilado y eficiente
 rustc|Compilador del lenguaje de programación Rust
 ruby|Lenguaje de programación dinámico y orientado a objetos
@@ -232,7 +252,7 @@ CATEGORIAS["sistemas_monitoreo"]="
 htop|Visualizador interactivo de procesos en tiempo real
 btop|Monitor de recursos del sistema en terminal con interfaz moderna
 glances|Herramienta de monitorización completa en terminal
-iotop|Monitor de uso de disco e I/O por proceso
+iotop-c|Monitor de uso de disco e I/O por proceso (comando iotop)
 "
 
 CATEGORIAS["sistemas_discos"]="
@@ -242,14 +262,13 @@ gparted|Editor gráfico de particiones de disco
 "
 
 CATEGORIAS["sistemas_informacion"]="
-neofetch|Herramienta para mostrar información del sistema y logo OS
 inxi|Script de información completa del hardware y sistema
 lshw|Listador detallado del hardware de la máquina
 "
 
 CATEGORIAS["seguridad"]="
 nmap|Escáner de redes y auditoría de seguridad de puertos
-masscan|Escáner masivo de puertos IP a alta velocidad
+masscan|Escáner masivo de puertos IP a alta velocidad (no disponible en openSUSE)
 wireshark|Analizador de tráfico y protocolos de red
 tcpdump|Capturador y analizador de paquetes por línea de comandos
 aircrack-ng|Suite de auditoría para redes inalámbricas Wi-Fi
@@ -258,7 +277,7 @@ john|Cracker de contraseñas rápido y multisistema
 hydra|Herramienta de ataque por fuerza bruta a servicios de red
 sqlmap|Herramienta automatizada de detección y explotación de SQLi
 nikto|Escáner de vulnerabilidades en servidores web
-metasploit-framework|Framework para pruebas de penetración y explotación
+metasploit-framework|Framework para pruebas de penetración y explotación (solo Arch en repos oficiales)
 clamav|Motor antivirus de código abierto para Linux
 fail2ban|Prevención de intrusiones mediante bloqueo de IPs
 "
@@ -266,9 +285,9 @@ fail2ban|Prevención de intrusiones mediante bloqueo de IPs
 CATEGORIAS["utilidades"]="
 fzf|Buscador difuso interactivo por línea de comandos
 ripgrep|Buscador de texto ultra rápido en archivos
-fd-find|Alternativa simple, rápida y amigable al comando find
-bat|Clon de cat con resaltado de sintaxis y manejo de git
-exa|Reemplazo moderno para el comando ls con colores y árbol
+fd-find|Alternativa simple, rápida y amigable al comando find (binario fdfind en Debian/Ubuntu)
+bat|Clon de cat con resaltado de sintaxis y manejo de git (binario batcat en Debian/Ubuntu)
+eza|Reemplazo moderno para el comando ls con colores y árbol
 zoxide|Navegación rápida entre directorios frecuentes (cd mejorado)
 tmux|Multiplexor de terminales para sesiones persistentes
 screen|Multiplexor de terminal clásico
@@ -320,8 +339,8 @@ journalctl|Consultor de registros y eventos del sistema systemd
 "
 
 CATEGORIAS["note4me"]="
-obsidian|Nota y gestión de conocimiento personal
-markdown|Herramientas de edición markdown
+obsidian|Nota y gestión de conocimiento personal (Flatpak)
+ghostwriter|Editor Markdown con vista previa en vivo
 "
 
 CATEGORIAS["docker4me"]="
@@ -337,22 +356,53 @@ rclone|Herramienta de sincronización con almacenamiento en la nube
 get_package_name() {
     local tool="$1"
     case "$tool" in
-        "code") [[ "$Package" == "pacman" ]] && echo "visual-studio-code-bin" || echo "code" ;;
         "gh") [[ "$Package" == "pacman" ]] && echo "github-cli" || echo "gh" ;;
-        "docker") [[ "$Package" == "apt" ]] && echo "docker.io" || echo "docker" ;;
-        "python3-pip") [[ "$Package" == "pacman" ]] && echo "python-pip" || echo "python3-pip" ;;
-        "openjdk-17-jdk")
+        "docker")
             case "$Package" in
-                apt) echo "openjdk-17-jdk" ;;
-                dnf) echo "java-17-openjdk" ;;
-                pacman) echo "jdk17-openjdk" ;;
-                *) echo "openjdk-17-jdk" ;;
+                apt) echo "docker.io" ;;
+                dnf) echo "moby-engine" ;;
+                *) echo "docker" ;;
+            esac
+            ;;
+        "docker-compose")
+            if [[ "$Package" == "apt" && "$OS_ID" == "ubuntu" ]]; then
+                echo "docker-compose-v2"
+            else
+                echo "docker-compose"
+            fi
+            ;;
+        # Fedora empaqueta Node.js y npm por versión (nodejs22, nodejs22-npm...)
+        "nodejs") [[ "$Package" == "zypper" ]] && echo "nodejs-default" || { [[ "$Package" == "dnf" ]] && echo "nodejs22" || echo "nodejs"; } ;;
+        "npm")
+            case "$Package" in
+                dnf) echo "nodejs22-npm" ;;
+                zypper) echo "npm-default" ;;
+                *) echo "npm" ;;
+            esac
+            ;;
+        "python3-pip") [[ "$Package" == "pacman" ]] && echo "python-pip" || echo "python3-pip" ;;
+        "openjdk-jdk")
+            case "$Package" in
+                apt) echo "openjdk-21-jdk" ;;
+                dnf) echo "java-25-openjdk-devel" ;;
+                pacman) echo "jdk21-openjdk" ;;
+                zypper) echo "java-21-openjdk-devel" ;;
+                *) echo "openjdk-21-jdk" ;;
             esac
             ;;
         "golang") [[ "$Package" == "apt" ]] && echo "golang-go" || echo "go" ;;
         "rustc") [[ "$Package" == "apt" ]] && echo "rustc" || echo "rust" ;;
         "fd-find") [[ "$Package" == "pacman" ]] && echo "fd" || echo "fd-find" ;;
-        "crontab") [[ "$Package" == "apt" || "$Package" == "zypper" ]] && echo "cron" || echo "cronie" ;;
+        "awk") echo "gawk" ;;
+        "journalctl") echo "systemd" ;;
+        "xsltproc")
+            case "$Package" in
+                apt) echo "xsltproc" ;;
+                zypper) echo "libxslt-tools" ;;
+                *) echo "libxslt" ;;
+            esac
+            ;;
+        "crontab") [[ "$Package" == "apt" ]] && echo "cron" || echo "cronie" ;;
         "host")
             case "$Package" in
                 apt) echo "bind9-dnsutils" ;;
@@ -360,16 +410,36 @@ get_package_name() {
                 *) echo "bind-utils" ;;
             esac
             ;;
-        "tput") [[ "$Package" == "apt" ]] && echo "ncurses-bin" || echo "ncurses" ;;
-        "free") [[ "$Package" == "pacman" ]] && echo "procps-ng" || echo "procps" ;;
+        "tput")
+            case "$Package" in
+                apt) echo "ncurses-bin" ;;
+                zypper) echo "ncurses-utils" ;;
+                *) echo "ncurses" ;;
+            esac
+            ;;
+        "free") [[ "$Package" == "pacman" || "$Package" == "dnf" ]] && echo "procps-ng" || echo "procps" ;;
         "hostname") [[ "$Package" == "pacman" ]] && echo "inetutils" || echo "hostname" ;;
         "js")
             case "$Package" in
                 pacman) echo "js128" ;;
-                apt|*) echo "nodejs" ;;
+                zypper) echo "nodejs-default" ;;
+                *) echo "nodejs" ;;
             esac
             ;;
         "snmp") [[ "$Package" == "apt" ]] && echo "snmp" || echo "net-snmp" ;;
+        "smbclient")
+            case "$Package" in
+                apt|pacman) echo "smbclient" ;;
+                *) echo "samba-client" ;;
+            esac
+            ;;
+        "wireshark")
+            case "$Package" in
+                pacman) echo "wireshark-qt" ;;
+                zypper) echo "wireshark-ui-qt" ;;
+                *) echo "wireshark" ;;
+            esac
+            ;;
         *) echo "$tool" ;;
     esac
 }
@@ -408,17 +478,72 @@ instalar_github_release() {
     echo -e "${VERDE}✅ $binary_name instalado en /usr/local/bin/${RESET}"
 }
 
+instalar_flatpak_base() {
+    if ! command -v flatpak &>/dev/null; then
+        echo -e "${AZUL}📦 Instalando Flatpak...${RESET}"
+        case "$Package" in
+            apt) apt update -y -qq && apt install -y flatpak ;;
+            dnf) dnf install -y flatpak ;;
+            pacman) pacman -S --noconfirm flatpak ;;
+            zypper) zypper install -y flatpak ;;
+            *)
+                echo -e "${ROJO}❌ No hay un gestor compatible para instalar Flatpak.${RESET}"
+                return 1
+                ;;
+        esac
+    fi
+
+    if ! command -v flatpak &>/dev/null; then
+        registrar_log "$LOG_ERR" "No se pudo instalar Flatpak"
+        return 1
+    fi
+
+    if ! flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo; then
+        registrar_log "$LOG_ERR" "No se pudo configurar el repositorio Flathub"
+        return 1
+    fi
+
+    return 0
+}
+
+instalar_flatpak_app() {
+    local tool="$1"
+    local app_id="${FLATPAK_APPS[$tool]}"
+
+    if [ -z "$app_id" ]; then
+        registrar_log "$LOG_ERR" "Sin ID de Flatpak para: $tool"
+        return 1
+    fi
+
+    instalar_flatpak_base || return 1
+
+    echo -e "${AZUL}   ➜ Instalando $tool desde Flathub ($app_id)...${RESET}"
+    if flatpak install -y flathub "$app_id"; then
+        registrar_log "$LOG_INFO" "Flatpak instalado: $tool ($app_id)"
+        return 0
+    else
+        registrar_log "$LOG_ERR" "Error al instalar Flatpak: $tool ($app_id)"
+        return 1
+    fi
+}
+
 instalar_paquetes() {
     local lista_raw="$1"
     local paquetes_a_instalar=()
     local paquetes_especiales=()
+    local paquetes_flatpak=()
 
     while IFS= read -r line; do
         [ -z "$line" ] && continue
         local nombre_paquete="${line%%|*}"
 
+        if [[ -n "${FLATPAK_APPS[$nombre_paquete]:-}" ]]; then
+            paquetes_flatpak+=("$nombre_paquete")
+            continue
+        fi
+
         case "$nombre_paquete" in
-            wpscan|feroxbuster|subfinder|nuclei|gobuster|whatweb|sublist3r|enum4linux|dnsrecon)
+            wpscan|feroxbuster|subfinder|nuclei|gobuster|whatweb|sublist3r|enum4linux|dnsrecon|nikto|sqlmap)
                 paquetes_especiales+=("$nombre_paquete")
                 ;;
             *)
@@ -428,6 +553,18 @@ instalar_paquetes() {
                 ;;
         esac
     done <<< "$lista_raw"
+
+    if [ ${#paquetes_a_instalar[@]} -gt 0 ]; then
+        local -A vistos=()
+        local paquetes_limpios=()
+        local pkg
+        for pkg in "${paquetes_a_instalar[@]}"; do
+            [[ -n "${vistos[$pkg]:-}" ]] && continue
+            vistos[$pkg]=1
+            paquetes_limpios+=("$pkg")
+        done
+        paquetes_a_instalar=("${paquetes_limpios[@]}")
+    fi
 
     if [ ${#paquetes_a_instalar[@]} -gt 0 ]; then
         echo -e "\n${AZUL}🔄 Actualizando repositorios ($Package)...${RESET}"
@@ -506,7 +643,28 @@ instalar_paquetes() {
                     ln -sf /opt/dnsrecon/dnsrecon.py /usr/local/bin/dnsrecon
                     chmod +x /usr/local/bin/dnsrecon
                     ;;
+                "nikto")
+                    rm -rf /opt/nikto
+                    git clone --depth 1 https://github.com/sullo/nikto.git /opt/nikto
+                    ln -sf /opt/nikto/program/nikto.pl /usr/local/bin/nikto
+                    chmod +x /opt/nikto/program/nikto.pl
+                    registrar_log "$LOG_INFO" "nikto instalado desde git"
+                    ;;
+                "sqlmap")
+                    rm -rf /opt/sqlmap
+                    git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap
+                    ln -sf /opt/sqlmap/sqlmap.py /usr/local/bin/sqlmap
+                    chmod +x /opt/sqlmap/sqlmap.py
+                    registrar_log "$LOG_INFO" "sqlmap instalado desde git"
+                    ;;
             esac
+        done
+    fi
+
+    if [ ${#paquetes_flatpak[@]} -gt 0 ]; then
+        echo -e "\n${MAGENTA}🌐 Instalando aplicaciones Flatpak desde Flathub...${RESET}"
+        for tool in "${paquetes_flatpak[@]}"; do
+            instalar_flatpak_app "$tool" || true
         done
     fi
 
@@ -537,15 +695,9 @@ menu_gestores_paquetes() {
 
         case "$opcion_num" in
             1)
-                echo -e "${AZUL}📦 Instalando Flatpak...${RESET}"
-                case "$Package" in
-                    apt) apt update && apt install -y flatpak ;;
-                    dnf) dnf install -y flatpak ;;
-                    pacman) pacman -S --noconfirm flatpak ;;
-                    zypper) zypper install -y flatpak ;;
-                esac
-                flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-                echo -e "${VERDE}✅ Flatpak configurado con Flathub.${RESET}"
+                if instalar_flatpak_base; then
+                    echo -e "${VERDE}✅ Flatpak configurado con Flathub.${RESET}"
+                fi
                 sleep 2
                 ;;
             2)

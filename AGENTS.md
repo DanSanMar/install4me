@@ -2,7 +2,7 @@
 
 ## What this is
 
-Single-file interactive Bash TUI that installs software on Linux by category. Everything lives in `install4me.sh`; there is no build system, test suite, CI, or dependency manifest. Runtime requirements are root, a supported package manager, and `fzf` (auto-installed at startup).
+Single-file interactive Bash TUI that installs software on Linux by category. Everything lives in `install4me.sh`; there is no build system, test suite, CI, or dependency manifest. Runtime requirements are root, a supported package manager, `fzf`, and optionally Flatpak (both auto-installed when needed).
 
 ## Verification
 
@@ -14,8 +14,9 @@ Single-file interactive Bash TUI that installs software on Linux by category. Ev
 
 - `V` (line 4) is the version rendered in the logo; bump it for releases.
 - `CATEGORIAS` associative array holds all installable software as `tool|description` lines. The part before `|` is a distro-neutral tool name; the description is rendered by the `fzf` preview. Section keys (`escritorio_navegadores`, `desarrollo_editores`, `sistemas_discos`, etc.) are dispatched by `menu_escritorio`, `menu_desarrollo`, `menu_sistemas`, and `menu_all4me`; `menu_principal` only routes to those section menus. Add a new submenu entry in the matching section function when adding a category key.
-- `get_package_name` translates those neutral names to per-manager package names. Add a branch whenever distro names differ (e.g. `code` → `visual-studio-code-bin`, `host` → `bind9-dnsutils`).
-- `instalar_paquetes` installs native packages by default. Non-native tools need **two** entries: the `case "$nombre_paquete"` whitelist at the top of the function **and** a matching arm in the `for tool in "${paquetes_especiales[@]}"` case. Missing the whitelist silently routes the tool to the native package manager.
+- `get_package_name` translates those neutral names to per-manager package names. Add a branch whenever distro names differ (e.g. `docker` → `moby-engine` on dnf, `openjdk-jdk` → `java-25-openjdk-devel` on dnf and `java-21-openjdk-devel` on zypper). Fedora empaqueta Node.js por versión (`nodejs22`, `nodejs22-npm`).
+- `FLATPAK_APPS` maps GUI tools that are not available in all four official repos to a Flathub ID. Tools listed there are installed by `instalar_flatpak_app` and must have `(Flatpak)` in their `CATEGORIAS` description. Do not add them to special installers too.
+- `instalar_paquetes` installs native packages by default. Non-native terminal tools need **two** entries: the `case "$nombre_paquete"` whitelist at the top of the function **and** a matching arm in the `for tool in "${paquetes_especiales[@]}"` case. Missing the whitelist silently routes the tool to the native package manager.
 - External installers: `instalar_github_release` resolves the latest GitHub release and hardcodes `x86_64`/`linux_amd64` assets. These paths are not ARM-safe.
 - Menu selections are parsed with `grep -oE '^[0-9]+'`, so every menu line must start with `N.`; `0` means back/exit.
 - Package-manager detection from `/etc/os-release` sets `Package` to `apt`, `dnf`, `pacman`, `zypper`, or `unknown`. Use it for every new install path.

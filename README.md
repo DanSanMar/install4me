@@ -2,7 +2,7 @@
 
 Instalador interactivo por categorías para Linux, escrito en Bash. Muestra menús de terminal con `fzf`, detecta el gestor de paquetes de la distribución e instala software nativo y herramientas externas desde un único script.
 
-Versión actual: **2.2.2**
+Versión actual: **2.3.0**
 
 ## Características
 
@@ -11,9 +11,22 @@ Versión actual: **2.2.2**
 - Categorías generales: escritorio, desarrollo, sistemas, seguridad y utilidades, con submenús por tipo en las tres primeras.
 - Submenús **ALL4ME**: `scan4me`, `admin4me`, `stop4me`, `note4me`, `docker4me` y `move4me`.
 - Instalación de gestores adicionales: Flatpak + Flathub, Snap, soporte FUSE para AppImage y `yay` (Arch).
+- Aplicaciones fuera de los repositorios oficiales se instalan automáticamente desde **Flathub** (LibreWolf, Chrome, Brave, Telegram, VS Code, Obsidian, ONLYOFFICE y WPS Office).
 - Herramientas que no están en los repositorios se instalan desde GitHub Releases, RubyGems, `pip` o clonando repositorios en `/opt`.
 - Registro de instalaciones en `/var/log/install4me.log`.
 - Interfaz y mensajes en español.
+
+## Orígenes de instalación
+
+- **Nativo**: paquetes de los repositorios oficiales de la distribución (por defecto).
+- **Flatpak**: aplicaciones marcadas como `(Flatpak)` en la descripción; se instalan desde Flathub con su ID oficial. Si falta Flatpak, el script lo instala y añade el repositorio Flathub.
+- **Especiales**: GitHub Releases, RubyGems, `pip` o repositorios clonados en `/opt` para herramientas de seguridad.
+
+## Catálogo destacado
+
+- **Oficina**: LibreOffice, ONLYOFFICE (Flatpak), WPS Office (Flatpak).
+- **Multimedia**: GIMP, Inkscape, VLC, MPV, Krita, Audacity, Kdenlive, OBS Studio y yt-dlp.
+- **Navegadores**: Firefox, Chromium, LibreWolf, Google Chrome y Brave (los tres últimos vía Flatpak).
 
 ## Distribuciones compatibles
 
@@ -30,6 +43,7 @@ En el resto de distribuciones se intenta detectar el gestor disponible; si no se
 - Privilegios de root (`sudo`).
 - `bash`, terminal interactiva y conexión a Internet.
 - `fzf` (se instala automáticamente al arrancar si falta).
+- `flatpak` (se instala automáticamente si eliges una aplicación Flatpak).
 - Según la categoría: `curl`, `wget`, `git`, `tar`, `unzip`, `pip` y `gem`.
 
 > Las instalaciones desde GitHub Releases usan binarios `x86_64`/`amd64`; no están preparadas para ARM.
@@ -81,7 +95,13 @@ LICENSE
 
 1. Añade una línea `herramienta|Descripción` a la categoría correspondiente del array `CATEGORIAS`.
 2. Si el nombre del paquete cambia según el gestor, añade la traducción en `get_package_name`.
-3. Si la herramienta no está en los repositorios, añádela tanto a la lista de `paquetes_especiales` como a su `case` de instalación en `instalar_paquetes`.
+3. Si la aplicación no está en los repositorios oficiales de las cuatro familias, añádela a `FLATPAK_APPS` con su ID de Flathub y marca la descripción con `(Flatpak)`.
+4. Si es una herramienta de terminal sin paquete nativo, añádela a la lista de `paquetes_especiales` y a su `case` de instalación en `instalar_paquetes`.
+
+## Limitaciones conocidas
+
+- `metasploit-framework` solo está en los repositorios oficiales de Arch; en el resto requiere instalación manual.
+- `masscan` no está en los repositorios oficiales de openSUSE.
 
 ## Registro
 
