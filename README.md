@@ -8,7 +8,7 @@ Versión actual: **2.2.2**
 
 - Menús TUI con `fzf`, selección múltiple y vista previa de cada programa.
 - Detección automática de `apt`, `dnf`, `pacman` o `zypper` desde `/etc/os-release`.
-- Categorías generales: escritorio, desarrollo, sistemas, seguridad y utilidades.
+- Categorías generales: escritorio, desarrollo, sistemas, seguridad y utilidades, con submenús por tipo en las tres primeras.
 - Submenús **ALL4ME**: `scan4me`, `admin4me`, `stop4me`, `note4me`, `docker4me` y `move4me`.
 - Instalación de gestores adicionales: Flatpak + Flathub, Snap, soporte FUSE para AppImage y `yay` (Arch).
 - Herramientas que no están en los repositorios se instalan desde GitHub Releases, RubyGems, `pip` o clonando repositorios en `/opt`.
@@ -47,7 +47,7 @@ También puedes ejecutarlo con `sudo bash install4me.sh`.
 
 Dentro de los menús: `TAB` marca, `Shift+TAB` desmarca, `Enter` confirma y `Esc` vuelve al menú anterior.
 
-## Menú principal
+## Menús
 
 | Opción | Sección |
 | --- | --- |
@@ -59,6 +59,14 @@ Dentro de los menús: `TAB` marca, `Shift+TAB` desmarca, `Enter` confirma y `Esc
 | 6 | ALL4ME (submenús por perfil) |
 | 7 | Gestores de paquetes |
 | 0 | Salir |
+
+Escritorio, Desarrollo y Sistemas abren un submenú antes de mostrar los programas:
+
+- **Escritorio** → Navegadores, Ofimática, Multimedia.
+- **Desarrollo** → Editores, Versiones, Contenedores, Lenguajes.
+- **Sistemas** → Monitoreo, Discos, Información.
+
+Seguridad, Utilidades y ALL4ME muestran sus programas directamente.
 
 ## Estructura
 

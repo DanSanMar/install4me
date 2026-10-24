@@ -182,12 +182,18 @@ mostrar_logo() {
 # --- DEFINICIÓN DE PAQUETES ---
 declare -A CATEGORIAS
 
-CATEGORIAS["escritorio"]="
+CATEGORIAS["escritorio_navegadores"]="
 firefox|Navegador web de código abierto rápido y privado
 chromium|Navegador web código abierto base de Chrome
 google-chrome|Navegador web oficial de Google
 brave-browser|Navegador enfocado en privacidad y bloqueo de publicidad
+"
+
+CATEGORIAS["escritorio_ofimatica"]="
 libreoffice|Suite ofimática completa (procesador, tablas, presentaciones)
+"
+
+CATEGORIAS["escritorio_multimedia"]="
 gimp|Editor de imágenes y manipulación fotográfica avanzado
 inkscape|Editor de gráficos vectoriales SVG
 telegram|Cliente oficial de la mensajería Telegram
@@ -195,14 +201,23 @@ vlc|Reproductor multimedia universal para audio y vídeo
 mpv|Reproductor de medios ligero pero potente por línea de comandos
 "
 
-CATEGORIAS["desarrollo"]="
+CATEGORIAS["desarrollo_editores"]="
 code|Editor Visual Studio Code
 neovim|Editor de texto extensible basado en Vim
 vim|Editor de texto clásico interactivo para terminal
+"
+
+CATEGORIAS["desarrollo_versiones"]="
 git|Sistema de control de versiones distribuido
 gh|Herramienta oficial de línea de comandos para GitHub
+"
+
+CATEGORIAS["desarrollo_contenedores"]="
 docker|Plataforma de despliegue de contenedores de software
 docker-compose|Herramienta para definir y ejecutar aplicaciones Docker multicontenedor
+"
+
+CATEGORIAS["desarrollo_lenguajes"]="
 nodejs|Entorno de ejecución para JavaScript en el servidor
 npm|Gestor de paquetes predeterminado para Node.js
 python3|Lenguaje de programación interpretado de propósito general
@@ -213,17 +228,23 @@ rustc|Compilador del lenguaje de programación Rust
 ruby|Lenguaje de programación dinámico y orientado a objetos
 "
 
-CATEGORIAS["sistemas"]="
+CATEGORIAS["sistemas_monitoreo"]="
 htop|Visualizador interactivo de procesos en tiempo real
 btop|Monitor de recursos del sistema en terminal con interfaz moderna
 glances|Herramienta de monitorización completa en terminal
 iotop|Monitor de uso de disco e I/O por proceso
+"
+
+CATEGORIAS["sistemas_discos"]="
 ncdu|Analizador de uso de disco en terminal con interfaz ncurses
 duf|Utilidad mejorada para ver el espacio y uso de disco
+gparted|Editor gráfico de particiones de disco
+"
+
+CATEGORIAS["sistemas_informacion"]="
 neofetch|Herramienta para mostrar información del sistema y logo OS
 inxi|Script de información completa del hardware y sistema
 lshw|Listador detallado del hardware de la máquina
-gparted|Editor gráfico de particiones de disco
 "
 
 CATEGORIAS["seguridad"]="
@@ -616,6 +637,89 @@ menu_categoria() {
     fi
 }
 
+menu_escritorio() {
+    while true; do
+        clear
+        mostrar_logo
+        local opciones="1. 🌐 NAVEGADORES  - Navegadores web
+2. 📄 OFIMÁTICA     - Suite ofimática
+3. 🎬 MULTIMEDIA    - Imagen, vídeo, audio y mensajería
+0. ⬅️ VOLVER        - Volver al menú principal"
+
+        local seleccion
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=18 --reverse --border=rounded --prompt=" Seleccione Categoría ❯ ")
+
+        [ -z "$seleccion" ] && return
+
+        local opcion_num
+        opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
+
+        case "$opcion_num" in
+            1) menu_categoria "escritorio_navegadores" "Navegadores" ;;
+            2) menu_categoria "escritorio_ofimatica" "Ofimática" ;;
+            3) menu_categoria "escritorio_multimedia" "Multimedia" ;;
+            0) return ;;
+            *) echo "Opción no válida"; sleep 1 ;;
+        esac
+    done
+}
+
+menu_desarrollo() {
+    while true; do
+        clear
+        mostrar_logo
+        local opciones="1. 📝 EDITORES      - Editores de código y terminal
+2. 🔀 VERSIONES     - Git y GitHub CLI
+3. 🐳 CONTENEDORES  - Docker y Docker Compose
+4. 💻 LENGUAJES     - Runtimes, compiladores y gestores
+0. ⬅️ VOLVER        - Volver al menú principal"
+
+        local seleccion
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=18 --reverse --border=rounded --prompt=" Seleccione Categoría ❯ ")
+
+        [ -z "$seleccion" ] && return
+
+        local opcion_num
+        opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
+
+        case "$opcion_num" in
+            1) menu_categoria "desarrollo_editores" "Editores" ;;
+            2) menu_categoria "desarrollo_versiones" "Versiones" ;;
+            3) menu_categoria "desarrollo_contenedores" "Contenedores" ;;
+            4) menu_categoria "desarrollo_lenguajes" "Lenguajes" ;;
+            0) return ;;
+            *) echo "Opción no válida"; sleep 1 ;;
+        esac
+    done
+}
+
+menu_sistemas() {
+    while true; do
+        clear
+        mostrar_logo
+        local opciones="1. 📊 MONITOREO     - Procesos y recursos en tiempo real
+2. 💾 DISCOS        - Análisis, espacio y particiones
+3. 🔎 INFORMACIÓN   - Hardware y datos del sistema
+0. ⬅️ VOLVER        - Volver al menú principal"
+
+        local seleccion
+        seleccion=$(echo -e "$opciones" | fzf --ansi --height=18 --reverse --border=rounded --prompt=" Seleccione Categoría ❯ ")
+
+        [ -z "$seleccion" ] && return
+
+        local opcion_num
+        opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
+
+        case "$opcion_num" in
+            1) menu_categoria "sistemas_monitoreo" "Monitoreo" ;;
+            2) menu_categoria "sistemas_discos" "Discos" ;;
+            3) menu_categoria "sistemas_informacion" "Información" ;;
+            0) return ;;
+            *) echo "Opción no válida"; sleep 1 ;;
+        esac
+    done
+}
+
 menu_all4me() {
     while true; do
         clear
@@ -672,9 +776,9 @@ menu_principal() {
         opcion_num=$(echo "$seleccion" | grep -oE '^[0-9]+')
 
         case "$opcion_num" in
-            1) menu_categoria "escritorio" "Escritorio" ;;
-            2) menu_categoria "desarrollo" "Desarrollo" ;;
-            3) menu_categoria "sistemas" "Sistemas" ;;
+            1) menu_escritorio ;;
+            2) menu_desarrollo ;;
+            3) menu_sistemas ;;
             4) menu_categoria "seguridad" "Seguridad" ;;
             5) menu_categoria "utilidades" "Utilidades" ;;
             6) menu_all4me ;;

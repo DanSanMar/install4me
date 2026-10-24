@@ -13,7 +13,7 @@ Single-file interactive Bash TUI that installs software on Linux by category. Ev
 ## Layout of install4me.sh
 
 - `V` (line 4) is the version rendered in the logo; bump it for releases.
-- `CATEGORIAS` associative array holds all installable software as `tool|description` lines. The part before `|` is a distro-neutral tool name; the description is rendered by the `fzf` preview. Keys map to menus (`menu_all4me` dispatches `scan4me`, `admin4me`, etc.).
+- `CATEGORIAS` associative array holds all installable software as `tool|description` lines. The part before `|` is a distro-neutral tool name; the description is rendered by the `fzf` preview. Section keys (`escritorio_navegadores`, `desarrollo_editores`, `sistemas_discos`, etc.) are dispatched by `menu_escritorio`, `menu_desarrollo`, `menu_sistemas`, and `menu_all4me`; `menu_principal` only routes to those section menus. Add a new submenu entry in the matching section function when adding a category key.
 - `get_package_name` translates those neutral names to per-manager package names. Add a branch whenever distro names differ (e.g. `code` → `visual-studio-code-bin`, `host` → `bind9-dnsutils`).
 - `instalar_paquetes` installs native packages by default. Non-native tools need **two** entries: the `case "$nombre_paquete"` whitelist at the top of the function **and** a matching arm in the `for tool in "${paquetes_especiales[@]}"` case. Missing the whitelist silently routes the tool to the native package manager.
 - External installers: `instalar_github_release` resolves the latest GitHub release and hardcodes `x86_64`/`linux_amd64` assets. These paths are not ARM-safe.
