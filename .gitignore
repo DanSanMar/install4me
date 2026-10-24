@@ -1,0 +1,18 @@
+# Logs generados por el script o por pruebas locales
+*.log
+
+# Copias de seguridad
+*.bak
+*.orig
+
+# Editores y sistemas operativos
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Entornos o archivos locales de prueba
+.env
+/tmp/
