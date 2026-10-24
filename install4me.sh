@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.3.0"
+V="2.3.1"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -189,7 +189,7 @@ FLATPAK_APPS["librewolf"]="io.gitlab.librewolf-community"
 FLATPAK_APPS["google-chrome"]="com.google.Chrome"
 FLATPAK_APPS["brave-browser"]="com.brave.Browser"
 FLATPAK_APPS["telegram"]="org.telegram.desktop"
-FLATPAK_APPS["code"]="com.visualstudio.code"
+FLATPAK_APPS["vscode"]="com.visualstudio.code"
 FLATPAK_APPS["obsidian"]="md.obsidian.Obsidian"
 FLATPAK_APPS["onlyoffice"]="org.onlyoffice.desktopeditors"
 FLATPAK_APPS["wps-office"]="com.wps.Office"
@@ -222,7 +222,8 @@ yt-dlp|Descarga de vídeo y audio desde múltiples sitios web
 "
 
 CATEGORIAS["desarrollo_editores"]="
-code|Editor Visual Studio Code (Flatpak)
+vscode|Editor Visual Studio Code (Flatpak)
+micro|Editor de texto moderno para terminal con atajos intuitivos
 neovim|Editor de texto extensible basado en Vim
 vim|Editor de texto clásico interactivo para terminal
 "
@@ -394,6 +395,7 @@ get_package_name() {
         "rustc") [[ "$Package" == "apt" ]] && echo "rustc" || echo "rust" ;;
         "fd-find") [[ "$Package" == "pacman" ]] && echo "fd" || echo "fd-find" ;;
         "awk") echo "gawk" ;;
+        "micro") [[ "$Package" == "zypper" ]] && echo "micro-editor" || echo "micro" ;;
         "journalctl") echo "systemd" ;;
         "xsltproc")
             case "$Package" in
@@ -751,7 +753,8 @@ seleccionar_programas() {
     fi
 
     local seleccionados
-    seleccionados=$(echo "$raw_data" | sed '/^[[:space:]]*$/d' | fzf --ansi \
+    seleccionados=$(printf '%s\n0. ⬅️ Volver|Volver al menú anterior\n' "$raw_data" \
+        | sed '/^[[:space:]]*$/d' | fzf --ansi \
         --multi \
         --height=18 \
         --reverse \
@@ -759,14 +762,17 @@ seleccionar_programas() {
         --delimiter="|" \
         --with-nth=1 \
         --prompt="➤ Seleccione programas: " \
-        --header="PROGRAMAS - $nombre_cat (TAB: Marcar | Shift+TAB: Desmarcar)" \
+        --header="PROGRAMAS - $nombre_cat (TAB: Marcar | Esc/0: Volver)" \
         --color="border:#00ffff,pointer:#92ff92,header:#5fb2ff" \
         --preview-window="right:50%:wrap" \
         --preview='
             echo -e "\033[1;36mDETALLES DEL PROGRAMA\033[0m\n"
             echo -e "\033[1;33m➜\033[0m {2..}"
         ')
-    
+
+    # Quitamos la opción "Volver" de la lista de programas a instalar
+    seleccionados=$(printf '%s\n' "$seleccionados" | grep -v '^0\.' | sed '/^[[:space:]]*$/d')
+
     if [ -n "$seleccionados" ]; then
         echo "$seleccionados"
     fi

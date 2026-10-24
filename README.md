@@ -2,7 +2,7 @@
 
 Instalador interactivo por categorías para Linux, escrito en Bash. Muestra menús de terminal con `fzf`, detecta el gestor de paquetes de la distribución e instala software nativo y herramientas externas desde un único script.
 
-Versión actual: **2.3.0**
+Versión actual: **2.3.1**
 
 ## Características
 
@@ -27,6 +27,7 @@ Versión actual: **2.3.0**
 - **Oficina**: LibreOffice, ONLYOFFICE (Flatpak), WPS Office (Flatpak).
 - **Multimedia**: GIMP, Inkscape, VLC, MPV, Krita, Audacity, Kdenlive, OBS Studio y yt-dlp.
 - **Navegadores**: Firefox, Chromium, LibreWolf, Google Chrome y Brave (los tres últimos vía Flatpak).
+- **Editores**: Visual Studio Code (Flatpak), micro, Neovim y Vim.
 
 ## Distribuciones compatibles
 
