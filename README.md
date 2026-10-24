@@ -2,7 +2,7 @@
 
 Instalador interactivo por categorías para Linux, escrito en Bash. Muestra menús de terminal con `fzf`, detecta el gestor de paquetes de la distribución e instala software nativo y herramientas externas desde un único script.
 
-Versión actual: **2.3.2**
+Versión actual: **2.4.0**
 
 ## Características
 
@@ -28,6 +28,8 @@ Versión actual: **2.3.2**
 - **Multimedia**: GIMP, Inkscape, VLC, MPV, Krita, Audacity, Kdenlive, OBS Studio y yt-dlp.
 - **Navegadores**: Firefox, Chromium, LibreWolf, Google Chrome y Brave (los tres últimos vía Flatpak).
 - **Editores**: Visual Studio Code, VSCodium y Zed (Flatpak), micro, Neovim, Vim, Kate, Geany y Emacs.
+- **Contenedores**: Docker, Docker Compose/Podman Compose, Podman, Podman Desktop (Flatpak), Buildah, Skopeo y Distrobox.
+- **Virtualización**: QEMU/KVM, libvirt, virt-manager, virt-install, virt-viewer, GNOME Boxes e Incus.
 
 ## Distribuciones compatibles
 
@@ -79,7 +81,7 @@ Escritorio, Desarrollo y Sistemas abren un submenú antes de mostrar los program
 
 - **Escritorio** → Navegadores, Ofimática, Multimedia.
 - **Desarrollo** → Editores, Versiones, Contenedores, Lenguajes.
-- **Sistemas** → Monitoreo, Discos, Información.
+- **Sistemas** → Monitoreo, Discos, Información, Virtualización.
 
 Seguridad, Utilidades y ALL4ME muestran sus programas directamente.
 

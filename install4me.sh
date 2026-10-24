@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- INFORMACIÓN DEL PROYECTO ---
-V="2.3.2"
+V="2.4.0"
 DESCRIPCION="Herramienta de instalación de programas por categorías y fuentes híbridas"
 AUTOR="DanSanMar"
 
@@ -192,6 +192,7 @@ FLATPAK_APPS["telegram"]="org.telegram.desktop"
 FLATPAK_APPS["vscode"]="com.visualstudio.code"
 FLATPAK_APPS["vscodium"]="com.vscodium.codium"
 FLATPAK_APPS["zed"]="dev.zed.Zed"
+FLATPAK_APPS["podman-desktop"]="io.podman_desktop.PodmanDesktop"
 FLATPAK_APPS["obsidian"]="md.obsidian.Obsidian"
 FLATPAK_APPS["onlyoffice"]="org.onlyoffice.desktopeditors"
 FLATPAK_APPS["wps-office"]="com.wps.Office"
@@ -243,6 +244,12 @@ gh|Herramienta oficial de línea de comandos para GitHub
 CATEGORIAS["desarrollo_contenedores"]="
 docker|Plataforma de despliegue de contenedores de software
 docker-compose|Herramienta para definir y ejecutar aplicaciones Docker multicontenedor
+podman|Motor de contenedores sin demonio compatible con Docker
+podman-compose|Alternativa a docker-compose basada en Podman
+podman-desktop|Interfaz gráfica para gestionar contenedores y Podman (Flatpak)
+buildah|Construcción de imágenes de contenedor OCI sin demonio
+skopeo|Copia e inspección de imágenes entre registros sin demonio
+distrobox|Ejecuta distribuciones GNU/Linux dentro de contenedores integrados
 "
 
 CATEGORIAS["desarrollo_lenguajes"]="
@@ -272,6 +279,16 @@ gparted|Editor gráfico de particiones de disco
 CATEGORIAS["sistemas_informacion"]="
 inxi|Script de información completa del hardware y sistema
 lshw|Listador detallado del hardware de la máquina
+"
+
+CATEGORIAS["sistemas_virtualizacion"]="
+qemu|Emulador y virtualizador completo con aceleración KVM
+libvirt|Demonio y herramientas de gestión de máquinas virtuales
+virt-manager|Interfaz gráfica para crear y administrar máquinas virtuales
+virt-install|Creación de máquinas virtuales desde la línea de comandos
+virt-viewer|Visor gráfico ligero para máquinas virtuales
+gnome-boxes|Máquinas virtuales sencillas con interfaz de GNOME
+incus|Gestor de contenedores de sistema y máquinas virtuales (sucesor de LXD)
 "
 
 CATEGORIAS["seguridad"]="
@@ -403,6 +420,22 @@ get_package_name() {
         "fd-find") [[ "$Package" == "pacman" ]] && echo "fd" || echo "fd-find" ;;
         "awk") echo "gawk" ;;
         "micro") [[ "$Package" == "zypper" ]] && echo "micro-editor" || echo "micro" ;;
+        "qemu")
+            case "$Package" in
+                apt) echo "qemu-system-x86" ;;
+                dnf) echo "qemu-kvm" ;;
+                pacman) echo "qemu-full" ;;
+                *) echo "qemu" ;;
+            esac
+            ;;
+        "libvirt")
+            case "$Package" in
+                apt) echo "libvirt-daemon-system" ;;
+                dnf) echo "libvirt-daemon-kvm" ;;
+                *) echo "libvirt" ;;
+            esac
+            ;;
+        "virt-install") [[ "$Package" == "apt" ]] && echo "virtinst" || echo "virt-install" ;;
         "journalctl") echo "systemd" ;;
         "xsltproc")
             case "$Package" in
@@ -865,6 +898,7 @@ menu_sistemas() {
         local opciones="1. 📊 MONITOREO     - Procesos y recursos en tiempo real
 2. 💾 DISCOS        - Análisis, espacio y particiones
 3. 🔎 INFORMACIÓN   - Hardware y datos del sistema
+4. 🧩 VIRTUALIZACIÓN - Máquinas virtuales y contenedores de sistema
 0. ⬅️ VOLVER        - Volver al menú principal"
 
         local seleccion
@@ -879,6 +913,7 @@ menu_sistemas() {
             1) menu_categoria "sistemas_monitoreo" "Monitoreo" ;;
             2) menu_categoria "sistemas_discos" "Discos" ;;
             3) menu_categoria "sistemas_informacion" "Información" ;;
+            4) menu_categoria "sistemas_virtualizacion" "Virtualización" ;;
             0) return ;;
             *) echo "Opción no válida"; sleep 1 ;;
         esac
